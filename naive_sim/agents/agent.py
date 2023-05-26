@@ -179,8 +179,7 @@ class Agent:
         )
 
     def rate_memories(self, locations, global_time, prompt_meta):
-        """
-        Rates the agent's memories based on their relevance and importance.
+        """Rates the agent's memories based on their relevance and importance.
 
         Parameters:
             locations : Locations
