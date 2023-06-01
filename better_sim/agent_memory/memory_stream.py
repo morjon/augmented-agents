@@ -31,16 +31,27 @@ class json_parser(LLMChain):
         return {"json": data}
 
 
-# methods for sandbox actions
-class plans(json_parser):
-    pass
-
-
-class update_plans(json_parser):
-    pass
-
-
 # methods for memory stream
+class reflection(memory_parser):
+    @classmethod
+    def from_llm(cls, llm: llama, verbose: bool = True, **kwargs) -> LLMChain:
+        return cls(
+            **kwargs,
+            llm=llm,
+            verbose=verbose,
+            prompt=PromptTemplate.from_template(
+                dedent(
+                    """\
+                    {statements}
+
+                    Given only the information above, what are 3 most salient high-level questions
+                    we can answer about the subjects in the statements?
+                    """
+                )
+            )
+        )
+
+
 class importance(memory_parser):
     @classmethod
     def from_llm(cls, llm: llama, verbose: bool = True, **kwargs) -> LLMChain:
@@ -62,3 +73,16 @@ class importance(memory_parser):
                 )
             )
         )
+
+
+# methods for sandbox actions
+class plans(json_parser):
+    pass
+
+
+class update_plans(json_parser):
+    pass
+
+
+class reaction(json_parser):
+    pass
