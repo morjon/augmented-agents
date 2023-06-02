@@ -1,5 +1,5 @@
 from local_models.llama import llama
-from agent_memory.chains import Reflection, Importance
+from agent_memory.chains import Reflection, Importance, Compress
 from pydantic import BaseModel, List, Field, Optional
 from datetime import datetime
 
@@ -27,17 +27,17 @@ class Agent(BaseModel):
     short_term_memory: str = ""
     last_refresh: datetime = Field(default_factory=None)
 
-    # memory tooling
+    # memory storage
     llm: llama = Field(init=False)
     long_term_memory: TimeWeightedVectorStoreRetriever = Field(init=False)
     short_term_memory: LLMChain = Field(init=False)
-    compressed_memory: LLMChain = Field(init=False)
 
-    # chains
+    # memory tooling
     generate_reflections: LLMChain = Field(init=False)
     generate_importance: LLMChain = Field(init=False)
+    generate_compression: LLMChain = Field(init=False)
 
-    importance_sum: float = 0.0
+    importance_threshold: float = 0.0
     importance_weight: float = 0.10
     reflection_threshold: Optional[float] = None
 
@@ -59,22 +59,57 @@ class Agent(BaseModel):
             **kwargs,
             generate_reflections=Reflection.from_llm(**chain),
             generate_importance=Importance.from_llm(**chain)
+            generate_compression=Compress.from_llm(**chain),
         )
 
-    def _predict_importance(self, experience_content: str) -> float:
-        score = self.generate_importance.run(
-            experience_content=experience_content
-        ).strip()
+    def _predict_importance(self, experience: str) -> float:
+        score = self.generate_importance.run(experience=experience).strip()
         match = re.search(r"^\D*(\d+)", score)
         if not match:
             return 0.0
         return (float(match.group(1)) / 10) * self.importance_weight
 
-    def add_memory(
-        self, experience_content: str, now: Optional[datetime] = None
-    ) -> List[str]:
-        score = self._predict_importance(experience_content)
-        self.importance_sum += score
-        record = Document(content=experience_content, metadata={"importance": score})
+    def _add_memory(self, experience: str, now: Optional[datetime] = None) -> List[str]:
+        score = self._predict_importance(experience)
+        self.importance_threshold += score
+        record = Document(content=experience, metadata={"importance": score})
         result = self.long_term_memory.add_documents([record], current_time=now)
         return result
+
+    def add_memory(self, experience: str) -> List[str]:
+        result = self._add_memory(experience)
+        if self.time_to_reflect():
+            self.pause_and_reflect()
+        return result
+
+    def time_to_reflect(self) -> bool:
+        return (
+            self.reflection_threshold is not None
+            and self.importance_threshold > self.reflection_threshold
+        )
+
+    def pause_and_reflect(self):
+        if self.status == "reflecting":
+            return []
+
+        prev_status = self.status
+        self.status = "reflecting"
+        insights = self._pause_and_reflect()
+        self.importance_threshold = 0.0
+        self.status = prev_status
+        return insights
+
+    def _pause_and_reflect(self) -> List[str]:
+        reflections = self._compress_memories()
+        for reflection in reflection:
+            self.add_memory(reflection)
+        return reflections
+
+    def _compress_memories(self, last_k: int = 50) -> List[str]:
+        observations = self.long_term_memory.memory_stream[-last_k:]
+        if not any(observations):
+            return []
+        return self.generate_compression.run(
+            # something
+        )
+        

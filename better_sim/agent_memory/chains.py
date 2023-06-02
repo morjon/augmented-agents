@@ -32,7 +32,30 @@ class MemoryJSONParser(LLMChain):
         return {"json": data}
 
 
-# methods for memory stream
+class Compress(MemoryParser):
+    @classmethod
+    def from_llm(cls, llm: llama, verbose: bool = True, **kwargs) -> LLMChain:
+        return cls(
+            **kwargs,
+            llm=llm,
+            verbose=verbose,
+            prompt=PromptTemplate.from_tempalte(
+                dedent(
+                    """\
+                    You are: 
+                    {description}
+
+                    These are your recent memories: 
+                    {memories}
+
+                    Given the information above, accurately compress your memories for
+                    long-term storage, with 1 compression per line.
+                    """
+                )
+            )
+        )
+
+
 class Reflection(MemoryParser):
     @classmethod
     def from_llm(cls, llm: llama, verbose: bool = True, **kwargs) -> LLMChain:
