@@ -42,8 +42,7 @@ class Compress(MemoryParser):
             prompt=PromptTemplate.from_tempalte(
                 dedent(
                     """\
-                    You are: 
-                    {description}
+                    {context}
 
                     These are your recent memories: 
                     {memories}
@@ -56,7 +55,7 @@ class Compress(MemoryParser):
         )
 
 
-class Reflection(MemoryParser):
+class Reflect(MemoryParser):
     @classmethod
     def from_llm(cls, llm: llama, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(

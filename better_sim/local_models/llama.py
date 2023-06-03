@@ -9,7 +9,6 @@ class llama(LlamaCpp):
     max_tokens: Optional[int] = 150
     n_ctx: int = Field(2048, alias="n_ctx")
 
-    # consider the following closely...
     n_gpu_layers: Optional[int] = Field(32, alias="n_gpu_layers")
     # n_threads: Optional[int] = Field(4, alias="n_threads")
     # n_batch: Optional[int] = Field(4, alias="n_batch")
@@ -21,6 +20,9 @@ class llama(LlamaCpp):
     def _llm_type(self) -> str:
         """Return type of local llm."""
         return "local llama"
+
+    def get_model_path(self) -> Optional[str]:
+        return self.model_path
 
     def generate(
         self,
