@@ -14,8 +14,8 @@ import re
 class Agent(BaseModel):
     name: str
     description: str
-    traits: List[str] = Field(default_factory=list)
     plan: List[str] = []
+    traits: List[str] = Field(default_factory=list)
 
     llm: llama = Field(init=False)
     long_term_memory: MemoryStream = Field(init=False)
@@ -24,6 +24,8 @@ class Agent(BaseModel):
     generate_reflections: LLMChain = Field(init=False)
     generate_importance: LLMChain = Field(init=False)
     generate_compression: LLMChain = Field(init=False)
+    generate_entity_observation: LLMChain = Field(init=False)
+    generate_entity_action: LLMChain = Field(init=False)
 
     status: str = "idle"
     short_term_memory_state: str = ""
@@ -49,6 +51,8 @@ class Agent(BaseModel):
             generate_reflections=Reflect.from_llm(**chain),
             generate_importance=Importance.from_llm(**chain),
             generate_compression=Compress.from_llm(**chain),
+            generate_entity_observation=EntityObserved.from_llm(**chain),
+            generate_entity_action=EntityAction.from_llm(**chain),
         )
 
     def get_agent_info(self):
@@ -60,8 +64,8 @@ class Agent(BaseModel):
             """
         )
 
-    def add_memory(self, event: str) -> List[str]:
-        result = self._add_memory(event)
+    def add_memory(self, fragment: str) -> List[str]:
+        result = self._add_memory(fragment)
         if self.time_to_reflect():
             self.pause_and_reflect()
         return result
@@ -86,11 +90,11 @@ class Agent(BaseModel):
         self.status = prev_status
         return insights
 
-    def _add_memory(self, event: str, now: Optional[datetime] = None) -> List[str]:
-        score = self._predict_importance(event)
+    def _add_memory(self, fragment: str) -> List[str]:
+        score = self._predict_importance(fragment)
         self.importance_sum += score
-        record = Document(content=event, metadata={"importance": score})
-        result = self.long_term_memory.add_documents([record], current_time=now)
+        record = Document(content=fragment, metadata={"importance": score})
+        result = self.long_term_memory.add_documents([record])
         return result
 
     def _pause_and_reflect(self) -> List[str]:
@@ -108,9 +112,17 @@ class Agent(BaseModel):
             memories="\n".join(o.page_content for o in observations),
         )
 
-    def _predict_importance(self, event: str) -> float:
-        score = self.generate_importance.run(event=event).strip()
+    def _predict_importance(self, fragment: str) -> float:
+        score = self.generate_importance.run(fragment=fragment).strip()
         match = re.search(r"^\D*(\d+)", score)
         if not match:
             return 0.0
         return (float(match.group(1)) / 10) * self.importance_weight
+
+    def _get_entity_from_observation(self, observation: str = "") -> str:
+        return self.generate_entity_observation.run(observation=observation).strip()
+
+    def _get_entity_action(self, observation: str = "", entity_name: str) ->:
+        return self.generate_entity_action.run(
+            observation=observation, entity=entity_name
+        ).strip()
