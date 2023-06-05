@@ -128,7 +128,7 @@ class EntityAction(MemoryParser):
             prompt=PromptTemplate.from_template(
                 dedent(
                     """\
-                    What is the {entity} doing in the following observation? {observation}
+                    What is the {entity} doing in the following: {observation}
 
                     The {entity} is: <fill in> \
                     """

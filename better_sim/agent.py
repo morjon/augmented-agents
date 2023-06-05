@@ -1,8 +1,13 @@
 from local_models.llama import llama
-from agent_memory.chains import Reflect, Importance, Compress
 from agent_memory.stream import MemoryStream
+from agent_memory.chains import (
+    Reflect,
+    Importance,
+    Compress,
+    EntityObserved,
+    EntityAction,
+)
 from pydantic import BaseModel, List, Field, Optional
-from datetime import datetime
 from textwrap import dedent
 
 from langchain import LLMChain
@@ -64,6 +69,9 @@ class Agent(BaseModel):
             """
         )
 
+    def get_agent_reaction():
+        pass
+
     def add_memory(self, fragment: str) -> List[str]:
         result = self._add_memory(fragment)
         if self.time_to_reflect():
@@ -122,7 +130,7 @@ class Agent(BaseModel):
     def _get_entity_from_observation(self, observation: str = "") -> str:
         return self.generate_entity_observation.run(observation=observation).strip()
 
-    def _get_entity_action(self, observation: str = "", entity_name: str) ->:
+    def _get_entity_action(self, observation: str, entity_name: str) -> str:
         return self.generate_entity_action.run(
             observation=observation, entity=entity_name
         ).strip()
