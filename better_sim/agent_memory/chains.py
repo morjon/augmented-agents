@@ -48,7 +48,8 @@ class MemoryCompress(MemoryParser):
                     {memories}
 
                     Given the information above, accurately compress your memories for
-                    long-term storage, with 1 compression per line.
+                    long-term storage (maintaining important content) with 1
+                    compression per line.
                     """
                 )
             )
@@ -128,7 +129,7 @@ class EntityAction(MemoryParser):
             prompt=PromptTemplate.from_template(
                 dedent(
                     """\
-                    What is the {entity} doing in the following: {observation}
+                    What action is the {entity} taking in the following: {observation}
 
                     The {entity} is: <fill in> \
                     """

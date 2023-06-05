@@ -69,9 +69,6 @@ class Agent(BaseModel):
             """
         )
 
-    def get_agent_reaction():
-        pass
-
     def add_memory(self, fragment: str) -> List[str]:
         result = self._add_memory(fragment)
         if self.time_to_reflect():
@@ -93,23 +90,23 @@ class Agent(BaseModel):
 
         prev_status = self.status
         self.status = "reflecting"
-        insights = self._pause_and_reflect()
+        reflections = self._pause_and_reflect()
         self.importance_sum = 0.0
         self.status = prev_status
-        return insights
+        return reflections
 
     def _add_memory(self, fragment: str) -> List[str]:
         score = self._predict_importance(fragment)
         self.importance_sum += score
-        record = Document(content=fragment, metadata={"importance": score})
-        result = self.long_term_memory.add_documents([record])
+        memory_record = Document(content=fragment, metadata={"importance": score})
+        result = self.long_term_memory.add_documents([memory_record])
         return result
 
     def _pause_and_reflect(self) -> List[str]:
-        reflections = self._compress_memories()
-        for reflection in reflections:
+        compressed_reflections = self._compress_memories()
+        for reflection in compressed_reflections:
             self.add_memory(reflection)
-        return reflections
+        return compressed_reflections
 
     def _compress_memories(self, last_k: int = 50) -> List[str]:
         observations = self.long_term_memory.memory_stream[-last_k:]
