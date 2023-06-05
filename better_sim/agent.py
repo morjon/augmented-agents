@@ -1,17 +1,18 @@
-from local_models.llama import llama
-from agent_memory.stream import MemoryStream
-from agent_memory.chains import (
-    MemoryReflect,
-    MemoryImportance,
-    MemoryCompress,
-    EntityObserved,
-    EntityAction,
-)
 from pydantic import BaseModel, List, Field, Optional
 from textwrap import dedent
 
 from langchain import LLMChain
 from lanchain.schema import Document
+
+from agent_memory.chains import (
+    EntityAction,
+    EntityObserved,
+    MemoryCompress,
+    MemoryImportance,
+    MemoryReflect,
+)
+from agent_memory.retriever import MemoryRetriever
+from local_models.llama import llama
 
 import re
 
@@ -21,19 +22,16 @@ class Agent(BaseModel):
     description: str
     plan: List[str] = []
     traits: List[str] = Field(default_factory=list)
+    status: str = "idle"
 
     llm: llama = Field(init=False)
-    long_term_memory: MemoryStream = Field(init=False)
-    short_term_memory: LLMChain = Field(init=False)
+    long_term_memory: MemoryRetriever = Field(init=False)
 
     generate_reflections: LLMChain = Field(init=False)
     generate_importance: LLMChain = Field(init=False)
     generate_compression: LLMChain = Field(init=False)
     generate_entity_observation: LLMChain = Field(init=False)
     generate_entity_action: LLMChain = Field(init=False)
-
-    status: str = "idle"
-    short_term_memory_state: str = ""
 
     importance_sum: float = 0.5
     reflection_threshold: Optional[float] = None
@@ -69,6 +67,8 @@ class Agent(BaseModel):
             """
         )
 
+    # memory stream related.. may abstract
+
     def add_memory(self, fragment: str) -> List[str]:
         result = self._add_memory(fragment)
         if self.time_to_reflect():
@@ -76,7 +76,7 @@ class Agent(BaseModel):
         return result
 
     def fetch_memories(self, observation: str) -> List[str]:
-        return self.long_term_memory.get_relevant_documents(observation)
+        return self.long_term_memory.retrieve_and_filter_memories(observation)
 
     def time_to_reflect(self) -> bool:
         return (
@@ -123,6 +123,8 @@ class Agent(BaseModel):
         if not match:
             return 0.0
         return (float(match.group(1)) / 10) * self.importance_weight
+
+    # agent/entity related
 
     def _get_entity_from_observed(self, observation: str = "") -> str:
         return self.generate_entity_observed.run(observation=observation).strip()
