@@ -133,3 +133,12 @@ class Agent(BaseModel):
         return self.generate_entity_action.run(
             observation=observation, entity=entity_name
         ).strip()
+
+    def get_summary(self, num_memories: int = 5) -> str:
+        memories = self.long_term_memory.retrieve_and_filter_memories(
+            "", sort_by="importance"
+        )
+        top_memories = memories[:num_memories]
+
+        summary = "\n".join([f"- {m.page_content}" for m in top_memories])
+        return summary

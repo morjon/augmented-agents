@@ -9,6 +9,11 @@ import json
 
 
 class MemoryParser(LLMChain):
+    # maybe
+    # def __init__(self, output_key="items", **kwargs):
+    #     super().__init__(**kwargs)
+    #     self.output_key = output_key
+
     output_key = "items"
 
     def _call(self, inputs: Dict[str, Any]) -> Dict[str, List[str]]:
@@ -52,11 +57,15 @@ class MemoryCompress(MemoryParser):
                     compression per line.
                     """
                 )
-            )
+            ),
         )
 
 
 class MemoryReflect(MemoryParser):
+    # consider..
+    # def __init__(self, output_key="reflect_items", **kwargs):
+    #     super().__init__(output_key=output_key, **kwargs)
+
     @classmethod
     def from_llm(cls, llm: llama, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
@@ -73,6 +82,8 @@ class MemoryReflect(MemoryParser):
                     """
                 )
             )
+            # output_key="reflect_items",
+            # **kwargs,
         )
 
 
@@ -96,7 +107,7 @@ class MemoryImportance(MemoryParser):
                     Rating: <fill in> \
                     """
                 )
-            )
+            ),
         )
 
 
@@ -115,7 +126,7 @@ class EntityObserved(MemoryParser):
                     Entity: <fill in> \
                     """
                 )
-            )
+            ),
         )
 
 
@@ -134,5 +145,5 @@ class EntityAction(MemoryParser):
                     The {entity} is: <fill in> \
                     """
                 )
-            )
+            ),
         )
