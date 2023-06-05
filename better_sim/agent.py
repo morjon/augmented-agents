@@ -1,9 +1,9 @@
 from local_models.llama import llama
 from agent_memory.stream import MemoryStream
 from agent_memory.chains import (
-    Reflect,
-    Importance,
-    Compress,
+    MemoryReflect,
+    MemoryImportance,
+    MemoryCompress,
     EntityObserved,
     EntityAction,
 )
@@ -53,10 +53,10 @@ class Agent(BaseModel):
         super().__init__(
             *args,
             **kwargs,
-            generate_reflections=Reflect.from_llm(**chain),
-            generate_importance=Importance.from_llm(**chain),
-            generate_compression=Compress.from_llm(**chain),
-            generate_entity_observation=EntityObserved.from_llm(**chain),
+            generate_reflections=MemoryReflect.from_llm(**chain),
+            generate_importance=MemoryImportance.from_llm(**chain),
+            generate_compression=MemoryCompress.from_llm(**chain),
+            generate_entity_observed=EntityObserved.from_llm(**chain),
             generate_entity_action=EntityAction.from_llm(**chain),
         )
 
@@ -127,8 +127,8 @@ class Agent(BaseModel):
             return 0.0
         return (float(match.group(1)) / 10) * self.importance_weight
 
-    def _get_entity_from_observation(self, observation: str = "") -> str:
-        return self.generate_entity_observation.run(observation=observation).strip()
+    def _get_entity_from_observed(self, observation: str = "") -> str:
+        return self.generate_entity_observed.run(observation=observation).strip()
 
     def _get_entity_action(self, observation: str, entity_name: str) -> str:
         return self.generate_entity_action.run(

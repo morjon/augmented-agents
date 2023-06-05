@@ -32,7 +32,7 @@ class MemoryJSONParser(LLMChain):
         return {"json": data}
 
 
-class Compress(MemoryParser):
+class MemoryCompress(MemoryParser):
     @classmethod
     def from_llm(cls, llm: llama, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
@@ -55,7 +55,7 @@ class Compress(MemoryParser):
         )
 
 
-class Reflect(MemoryParser):
+class MemoryReflect(MemoryParser):
     @classmethod
     def from_llm(cls, llm: llama, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
@@ -75,7 +75,7 @@ class Reflect(MemoryParser):
         )
 
 
-class Importance(MemoryParser):
+class MemoryImportance(MemoryParser):
     @classmethod
     def from_llm(cls, llm: llama, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
