@@ -1,23 +1,21 @@
-from local_models.llama import llama
+from models.llama import llama
 from typing import Any, Dict, List
 from textwrap import dedent
 
-from langchain import LLMChain, PromptTemplate
+from langchain.chains import LLMChain
+from langchain.prompts import PromptTemplate
 
 import re
 import json
 
 
 class MemoryParser(LLMChain):
-    # maybe
-    # def __init__(self, output_key="items", **kwargs):
-    #     super().__init__(**kwargs)
-    #     self.output_key = output_key
-
     output_key = "items"
 
     def _call(self, inputs: Dict[str, Any]) -> Dict[str, List[str]]:
-        text = super._call(inputs)[self.output_key].strip()
+        print(f"_call inputs: {inputs}")
+
+        text = super()._call(inputs)[self.output_key].strip()
 
         items = [
             re.sub(r"^\s*\d+\.\s*", "", line).strip()
@@ -44,7 +42,7 @@ class MemoryCompress(MemoryParser):
             **kwargs,
             llm=llm,
             verbose=verbose,
-            prompt=PromptTemplate.from_tempalte(
+            prompt=PromptTemplate.from_template(
                 dedent(
                     """\
                     {context}
@@ -62,10 +60,6 @@ class MemoryCompress(MemoryParser):
 
 
 class MemoryReflect(MemoryParser):
-    # consider..
-    # def __init__(self, output_key="reflect_items", **kwargs):
-    #     super().__init__(output_key=output_key, **kwargs)
-
     @classmethod
     def from_llm(cls, llm: llama, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
@@ -81,9 +75,7 @@ class MemoryReflect(MemoryParser):
                     questions we can answer about the subjects in the statements?
                     """
                 )
-            )
-            # output_key="reflect_items",
-            # **kwargs,
+            ),
         )
 
 

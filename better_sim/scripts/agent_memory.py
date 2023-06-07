@@ -8,13 +8,15 @@ from langchain.prompts import (
 from langchain.chains import ConversationChain
 from langchain.memory import ConversationBufferMemory
 
-path = "../llama.cpp/models/13B/ggml-model-q4_0.bin"
+path = "/home/ubuntu/repos/augmented-agents/llama.cpp/models/13B/ggml-model-q4_0.bin"
+
 
 prompt = ChatPromptTemplate.from_messages(
     [
         SystemMessagePromptTemplate.from_template(
-            "The following is a friendly conversation between a human and God. "
-            + "God is quite dull, but is fascinated by the human's existence."
+            "The following is a angry conversation between the President "
+            + "of the United States and Hanna Montana. "
+            + "The President doesn't believe that she's also Miley Cyrus."
         ),
         MessagesPlaceholder(variable_name="history"),
         HumanMessagePromptTemplate.from_template("{input}"),
@@ -27,4 +29,4 @@ memory = ConversationBufferMemory(return_messages=True)
 conversation = ConversationChain(memory=memory, prompt=prompt, llm=llm)
 
 print(conversation.predict(input="Sup?"))
-print(conversation.predict(input="Tell me about your favorite memory."))
+print(conversation.predict(input="Tell me about your mom."))

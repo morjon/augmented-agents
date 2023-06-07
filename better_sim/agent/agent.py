@@ -1,18 +1,22 @@
-from pydantic import BaseModel, List, Field, Optional
+from pydantic import BaseModel, Field
+from typing import List, Optional
 from textwrap import dedent
 
 from langchain import LLMChain
-from lanchain.schema import Document
+from langchain.schema import Document, BaseRetriever
 
-from agent_memory.chains import (
+from memory.chains import (
     EntityAction,
     EntityObserved,
     MemoryCompress,
     MemoryImportance,
     MemoryReflect,
 )
-from agent_memory.retriever import MemoryRetriever
-from local_models.llama import llama
+
+# from memory.retriever import MemoryRetriever
+
+# from langchain.retrievers import TimeWeightedVectorStoreRetriever
+from models.llama import llama
 
 import re
 
@@ -20,17 +24,16 @@ import re
 class Agent(BaseModel):
     name: str
     description: str
-    plan: List[str] = []
     traits: List[str] = Field(default_factory=list)
     status: str = "idle"
 
     llm: llama = Field(init=False)
-    long_term_memory: MemoryRetriever = Field(init=False)
+    long_term_memory: BaseRetriever = Field(init=False)
 
     generate_reflections: LLMChain = Field(init=False)
     generate_importance: LLMChain = Field(init=False)
     generate_compression: LLMChain = Field(init=False)
-    generate_entity_observation: LLMChain = Field(init=False)
+    generate_entity_observed: LLMChain = Field(init=False)
     generate_entity_action: LLMChain = Field(init=False)
 
     importance_sum: float = 0.5
@@ -48,6 +51,7 @@ class Agent(BaseModel):
             verbose=kwargs.get("verbose", True),
             callback_manager=kwargs.get("callback_manager", None),
         )
+        print("Chain dictionary:", chain)  # add this line
         super().__init__(
             *args,
             **kwargs,
@@ -76,7 +80,7 @@ class Agent(BaseModel):
         return result
 
     def fetch_memories(self, observation: str) -> List[str]:
-        return self.long_term_memory.retrieve_and_filter_memories(observation)
+        return self.long_term_memory.get_relevant_documents(observation)
 
     def time_to_reflect(self) -> bool:
         return (
@@ -96,9 +100,14 @@ class Agent(BaseModel):
         return reflections
 
     def _add_memory(self, fragment: str) -> List[str]:
+        content = "[[Memory]]\n" + fragment
         score = self._predict_importance(fragment)
+        print("score:", score)
         self.importance_sum += score
-        memory_record = Document(content=fragment, metadata={"importance": score})
+        memory_record = self.long_term_memory.add_documents(
+            [Document(page_content=content, metadata={"Importance": score})]
+        )
+        print(memory_record)
         result = self.long_term_memory.add_documents([memory_record])
         return result
 
@@ -118,7 +127,10 @@ class Agent(BaseModel):
         )
 
     def _predict_importance(self, fragment: str) -> float:
-        score = self.generate_importance.run(fragment=fragment).strip()
+        score = self.generate_importance.run(fragment=fragment)
+        print("score", score)
+        score = score[0].strip()
+        print("new score", score)
         match = re.search(r"^\D*(\d+)", score)
         if not match:
             return 0.0
@@ -135,7 +147,7 @@ class Agent(BaseModel):
         ).strip()
 
     def get_summary(self, num_memories: int = 5) -> str:
-        memories = self.long_term_memory.retrieve_and_filter_memories(
+        memories = self.long_term_memory.get_relevant_documents(
             "", sort_by="importance"
         )
         top_memories = memories[:num_memories]

@@ -5,7 +5,7 @@ from langchain.llms import LlamaCpp
 path = "../llama.cpp/models/13B/ggml-model-q4_0.bin"
 
 # standard model loading for embedding lib using high-level API
-llm = Llama(model_path=path)
+llm = Llama()
 output = llm(
     "Q: What is the best song in the world? Think about the problem carefully,"
     "and step by step. A: ",
