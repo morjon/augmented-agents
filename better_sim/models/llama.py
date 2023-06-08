@@ -1,7 +1,6 @@
 from pydantic import Field
 from typing import Any, Optional
 
-# from langchain.callbacks.base import BaseCallbackManager
 from langchain.llms import LlamaCpp
 
 
@@ -11,8 +10,7 @@ class llama(LlamaCpp):
     ] = "/home/ubuntu/repos/augmented-agents/llama.cpp/models/13B/ggml-model-q4_0.bin"
     temperature: Optional[float] = 0.85
     max_tokens: Optional[int] = 150
-    n_ctx: int = Field(2048, alias="n_ctx")
-    # callback_manager: Optional[BaseCallbackManager]
+    n_ctx: int = Field(2000, alias="n_ctx")
 
     n_gpu_layers: Optional[int] = Field(32, alias="n_gpu_layers")
 

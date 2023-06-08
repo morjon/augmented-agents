@@ -14,8 +14,8 @@ class MemoryParser(LLMChain):
 
     def _call(self, inputs: Dict[str, Any]) -> Dict[str, List[str]]:
         print(f"_call inputs: {inputs}")
-
         text = super()._call(inputs)[self.output_key].strip()
+        print(f"text after super()._call: {text}")
 
         items = [
             re.sub(r"^\s*\d+\.\s*", "", line).strip()

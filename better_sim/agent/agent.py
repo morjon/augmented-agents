@@ -3,7 +3,10 @@ from typing import List, Optional
 from textwrap import dedent
 
 from langchain import LLMChain
-from langchain.schema import Document, BaseRetriever
+from langchain.retrievers import TimeWeightedVectorStoreRetriever
+from langchain.schema import Document
+
+# from langchain.schema import BaseRetriever
 
 from memory.chains import (
     EntityAction,
@@ -13,9 +16,6 @@ from memory.chains import (
     MemoryReflect,
 )
 
-# from memory.retriever import MemoryRetriever
-
-# from langchain.retrievers import TimeWeightedVectorStoreRetriever
 from models.llama import llama
 
 import re
@@ -28,7 +28,7 @@ class Agent(BaseModel):
     status: str = "idle"
 
     llm: llama = Field(init=False)
-    long_term_memory: BaseRetriever = Field(init=False)
+    long_term_memory: TimeWeightedVectorStoreRetriever = Field(init=False)
 
     generate_reflections: LLMChain = Field(init=False)
     generate_importance: LLMChain = Field(init=False)
@@ -37,6 +37,7 @@ class Agent(BaseModel):
     generate_entity_action: LLMChain = Field(init=False)
 
     importance_sum: float = 0.5
+    importance_weight: float = 0.10
     reflection_threshold: Optional[float] = None
 
     verbose: bool = False
@@ -51,7 +52,7 @@ class Agent(BaseModel):
             verbose=kwargs.get("verbose", True),
             callback_manager=kwargs.get("callback_manager", None),
         )
-        print("Chain dictionary:", chain)  # add this line
+        print("Chain dictionary:", chain)
         super().__init__(
             *args,
             **kwargs,
@@ -65,6 +66,7 @@ class Agent(BaseModel):
     def get_agent_info(self):
         return dedent(
             f"""\
+
             Name: {self.name}
             Description: {self.description}
             Traits: {", ".join(self.traits)}
@@ -102,14 +104,13 @@ class Agent(BaseModel):
     def _add_memory(self, fragment: str) -> List[str]:
         content = "[[Memory]]\n" + fragment
         score = self._predict_importance(fragment)
-        print("score:", score)
+        print("original chain:", score)
         self.importance_sum += score
         memory_record = self.long_term_memory.add_documents(
             [Document(page_content=content, metadata={"Importance": score})]
         )
-        print(memory_record)
-        result = self.long_term_memory.add_documents([memory_record])
-        return result
+        print("memory record:", memory_record)
+        return memory_record
 
     def _pause_and_reflect(self) -> List[str]:
         compressed_reflections = self._compress_memories()

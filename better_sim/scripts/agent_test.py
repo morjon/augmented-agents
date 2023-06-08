@@ -11,7 +11,7 @@ from agent.agent import Agent
 from models.llama import llama
 from utils.callbacks import ConsolePrettyPrintManager
 
-llm = llama(callback_manager=ConsolePrettyPrintManager([]))
+llm = llama(model_name=1, callback_manager=ConsolePrettyPrintManager([]))
 embeddings = LlamaCppEmbeddings(
     model_path="/home/ubuntu/repos/augmented-agents/llama.cpp/models/13B/ggml-model-q4_0.bin"
 )
@@ -36,8 +36,8 @@ agent = Agent(
 )
 
 observations = [
-    "Bob remembers his dog, Bruno, from when he was a kid",
     "Bob feels tired from driving so far",
+    "Bob remembers his dog, Bruno, from when he was a kid",
     "Bob sees the new home",
     "The new neighbors have a cat",
     "The road is noisy at night",
