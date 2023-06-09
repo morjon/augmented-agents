@@ -1,4 +1,4 @@
-from models.llama import llama
+from models.local_llamas import vicuna
 from typing import Any, Dict, List
 from textwrap import dedent
 
@@ -37,7 +37,7 @@ class MemoryJSONParser(LLMChain):
 
 class MemoryCompress(MemoryParser):
     @classmethod
-    def from_llm(cls, llm: llama, verbose: bool = True, **kwargs) -> LLMChain:
+    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
             **kwargs,
             llm=llm,
@@ -61,7 +61,7 @@ class MemoryCompress(MemoryParser):
 
 class MemoryReflect(MemoryParser):
     @classmethod
-    def from_llm(cls, llm: llama, verbose: bool = True, **kwargs) -> LLMChain:
+    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
             **kwargs,
             llm=llm,
@@ -81,7 +81,7 @@ class MemoryReflect(MemoryParser):
 
 class MemoryImportance(MemoryParser):
     @classmethod
-    def from_llm(cls, llm: llama, verbose: bool = True, **kwargs) -> LLMChain:
+    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
             **kwargs,
             llm=llm,
@@ -105,7 +105,7 @@ class MemoryImportance(MemoryParser):
 
 class EntityObserved(MemoryParser):
     @classmethod
-    def from_llm(cls, llm: llama, verbose: bool = True, **kwargs) -> LLMChain:
+    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
             **kwargs,
             llm=llm,
@@ -124,7 +124,7 @@ class EntityObserved(MemoryParser):
 
 class EntityAction(MemoryParser):
     @classmethod
-    def from_llm(cls, llm: llama, verbose: bool = True, **kwargs) -> LLMChain:
+    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
             **kwargs,
             llm=llm,
@@ -135,6 +135,29 @@ class EntityAction(MemoryParser):
                     What action is the {entity} taking in the following: {observation}
 
                     The {entity} is: <fill in> \
+                    """
+                )
+            ),
+        )
+
+
+class AgentSummary(MemoryParser):
+    @classmethod
+    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
+        return cls(
+            **kwargs,
+            llm=llm,
+            verbose=verbose,
+            prompt=PromptTemplate.from_template(
+                dedent(
+                    """\
+                    Summarize {name}'s core characteristics based on the following:
+
+                    {memories}                     
+
+                    Be concise and avoid embellishment.
+
+                    Summary: <fill in> \
                     """
                 )
             ),

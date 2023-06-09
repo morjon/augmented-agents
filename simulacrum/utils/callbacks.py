@@ -4,13 +4,13 @@ from typing import Any, Dict, List
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.stdout import StdOutCallbackHandler
 
-class ConsolePrettyPrintManager(CallbackManager):
+class ConsoleManager(CallbackManager):
     def __init__(self, handlers: List[StdOutCallbackHandler] = None):
         super().__init__(handlers=handlers)
-        self.handlers.append(ConsolePrettyPrinter())
+        self.handlers.append(ConsolePrinter())
 
 
-class ConsolePrettyPrinter(StdOutCallbackHandler):
+class ConsolePrinter(StdOutCallbackHandler):
     def on_chain_end(self, outputs: Dict[str, Any], **kwargs: Any) -> None:
         super().on_chain_end(outputs, **kwargs)
         pprint(outputs)

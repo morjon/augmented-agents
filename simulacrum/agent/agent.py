@@ -6,17 +6,15 @@ from langchain import LLMChain
 from langchain.retrievers import TimeWeightedVectorStoreRetriever
 from langchain.schema import Document
 
-# from langchain.schema import BaseRetriever
-
 from memory.chains import (
+    AgentSummary,
     EntityAction,
     EntityObserved,
     MemoryCompress,
     MemoryImportance,
     MemoryReflect,
 )
-
-from models.llama import llama
+from models.local_llamas import vicuna
 
 import re
 
@@ -27,14 +25,16 @@ class Agent(BaseModel):
     traits: List[str] = Field(default_factory=list)
     status: str = "idle"
 
-    llm: llama = Field(init=False)
-    long_term_memory: TimeWeightedVectorStoreRetriever = Field(init=False)
+    llm: vicuna = Field(init=False)
+    long_term_memory: TimeWeightedVectorStoreRetriever
+    short_term_memory: str = ""
 
     generate_reflections: LLMChain = Field(init=False)
     generate_importance: LLMChain = Field(init=False)
     generate_compression: LLMChain = Field(init=False)
     generate_entity_observed: LLMChain = Field(init=False)
     generate_entity_action: LLMChain = Field(init=False)
+    generate_agent_summary: LLMChain = Field(init=False)
 
     importance_sum: float = 0.5
     importance_weight: float = 0.10
@@ -61,6 +61,7 @@ class Agent(BaseModel):
             generate_compression=MemoryCompress.from_llm(**chain),
             generate_entity_observed=EntityObserved.from_llm(**chain),
             generate_entity_action=EntityAction.from_llm(**chain),
+            generate_agent_summary=AgentSummary.from_llm(**chain),
         )
 
     def get_agent_info(self):
@@ -143,11 +144,27 @@ class Agent(BaseModel):
             observation=observation, entity=entity_name
         ).strip()
 
-    def get_summary(self, num_memories: int = 5) -> str:
-        memories = self.long_term_memory.get_relevant_documents(
-            "", sort_by="importance"
-        )
-        top_memories = memories[:num_memories]
+    def get_context(self, force_refresh: bool = False) -> str:
+        context = self.short_term_memory
+        if not context or force_refresh or self.time_to_reflect():
+            context = self._compute_agent_memory()
 
-        summary = "\n".join([f"- {m.page_content}" for m in top_memories])
-        return summary
+        return f"{self.get_agent_info()}Summary:\n{context}\n"
+
+    def _compute_agent_memory(self):
+        memories = self.fetch_memories("Happiest memories.")
+        if not any(memories):
+            return "[Empty]"
+
+        self.short_term_memory = "\n".join(
+            f"{n}. {mem}"
+            for (n, mem) in enumerate(
+                self.generate_compression.run(
+                    context=self.get_agent_info(),
+                    memories="\n".join(
+                        f"{m.page_content}" for m in memories
+                    ),
+                )
+            )
+        )
+        return self.short_term_memory

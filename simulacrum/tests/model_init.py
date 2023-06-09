@@ -4,7 +4,7 @@ from langchain.chains import LLMChain
 from langchain.llms import LlamaCpp
 from langchain.prompts import PromptTemplate
 
-model_path = "../llama.cpp/models/wizard-vicuna-13B.ggmlv3.q4_0.bin"
+default_path = "../llama.cpp/models/wizard-vicuna-13B.ggmlv3.q4_0.bin"
 gpu_path = "/home/ubuntu/repos/llama.cpp/models/wz-gpu.ggmlv3.q4_1.bin"  # CUDA enabled
 callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
 
@@ -24,7 +24,8 @@ template = """
 prompt = PromptTemplate(template=template, input_variables=["fragment"])
 
 llm = LlamaCpp(
-    model_path=gpu_path,
+    model_path=default_path,
+    # model_path=gpu_path,
     n_gpu_layers=n_gpu_layers,
     n_batch=n_batch,
     callback_manager=callback_manager,
