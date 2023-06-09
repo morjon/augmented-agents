@@ -35,6 +35,7 @@ class MemoryJSONParser(LLMChain):
         return {"json": data}
 
 
+# Use BaseChatModel for llm to enable better text parsing.
 class MemoryCompress(MemoryParser):
     @classmethod
     def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:

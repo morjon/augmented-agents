@@ -47,8 +47,6 @@ class Agent(BaseModel):
     verbose: bool = False
     max_token_limit: int = 1200
 
-    callback_manager: BaseCallbackManager = ConsoleManager
-
     class Config:
         arbitrary_types_allowed = True
 
@@ -110,12 +108,10 @@ class Agent(BaseModel):
     def _add_memory(self, fragment: str) -> List[str]:
         content = "[[Memory]]\n" + fragment
         score = self._predict_importance(fragment)
-        print("original chain:", score)
         self.importance_sum += score
         memory_record = self.long_term_memory.stream.add_documents(
             [Document(page_content=content, metadata={"Importance": score})]
         )
-        print("memory record:", memory_record)
         return memory_record
 
     def _pause_and_reflect(self) -> List[str]:
@@ -168,9 +164,7 @@ class Agent(BaseModel):
             for (n, mem) in enumerate(
                 self.generate_compression.run(
                     context=self.get_agent_info(),
-                    memories="\n".join(
-                        f"{m.page_content}" for m in memories
-                    ),
+                    memories="\n".join(f"{m.page_content}" for m in memories),
                 )
             )
         )
