@@ -73,8 +73,6 @@ class Agent(BaseModel):
             """
         )
 
-    # memory stream related.. may abstract
-
     def add_memory(self, fragment: str) -> List[str]:
         result = self._add_memory(fragment)
         if self.time_to_reflect():
@@ -136,8 +134,6 @@ class Agent(BaseModel):
         if not match:
             return 0.0
         return (float(match.group(1)) / 10) * self.importance_weight
-
-    # agent/entity related
 
     def _get_entity_from_observed(self, observation: str = "") -> str:
         return self.generate_entity_observed.run(observation=observation).strip()

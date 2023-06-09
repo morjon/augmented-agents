@@ -5,10 +5,8 @@ from langchain.llms import LlamaCpp
 
 
 class llama(LlamaCpp):
-    model_path: Optional[
-        str
-    ] = "/home/ubuntu/repos/augmented-agents/llama.cpp/models/13B/ggml-model-q4_0.bin"
-    temperature: Optional[float] = 0.85
+    model_path: Optional[str] = "../llama.cpp/models/13B/ggml-model-q4_0.bin"
+    temperature: Optional[float] = 0.8
     max_tokens: Optional[int] = 150
     n_ctx: int = Field(2000, alias="n_ctx")
 
