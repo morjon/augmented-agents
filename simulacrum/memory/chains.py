@@ -13,15 +13,15 @@ class MemoryParser(LLMChain):
     output_key = "items"
 
     def _call(self, inputs: Dict[str, Any]) -> Dict[str, List[str]]:
-        print(f"_call inputs: {inputs}")
+        print(f"_call inputs: {inputs}\n")
         text = super()._call(inputs)[self.output_key].strip()
-        print(f"text after super()._call: {text}")
+        print(f"text after super()._call\n: {text}")
 
         items = [
             re.sub(r"^\s*\d+\.\s*", "", line).strip()
             for line in re.split(r"\n", text.strip())
         ]
-        return {"items": items}
+        return {"items (after parse)\n": items}
 
     def run(self, **kwargs) -> Dict[str, List[str]]:
         return self._call(inputs=kwargs)[self.output_key]

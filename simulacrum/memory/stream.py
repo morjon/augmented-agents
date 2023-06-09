@@ -1,23 +1,32 @@
-from typing import List
-from lanchain.schema import Document
+from faiss import IndexFlatL2
+
+from langchain.docstore import InMemoryDocstore
+from langchain.retrievers import TimeWeightedVectorStoreRetriever
+from langchain.schema import BaseRetriever
+from langchain.vectorstores import FAISS
+
+from models.local_llamas import vicuna
+
+llm = vicuna()
+embeddings = llm.get_embeddings()
 
 
-class MemoryStream:  # maybe
+class AgentMemory(TimeWeightedVectorStoreRetriever):
+    stream: BaseRetriever
+
     def __init__(self):
-        self.stream = []
-        self.importance_weight = 0.5
+        self.stream = TimeWeightedVectorStoreRetriever(
+            vectorstore=FAISS(
+                embedding_function=embeddings.embed_query,
+                index=IndexFlatL2(5120),
+                docstore=InMemoryDocstore({}),
+                index_to_docstore_id={},
+            )
+        )
 
-    def store_memories(self, documents: List[Document]) -> List[str]:
-        result = []
-        for document in documents:
-            self.stream.append(document)
-            result.append(document.content)
-        return result
+    # def add_memory(self, text: str, doc_id: str = None):
+    #     document = Document(text=text, doc_id=doc_id)
+    #     self.memory.store(document)
 
-    def retrieve_and_filter_memories(self, observation: str) -> List[str]:
-        result = []
-        # Filter memories based on observation
-        for memory in self.stream:
-            if observation in memory.content:
-                result.append(memory.content)
-        return result
+    # def get_context(self, num_results=10):
+    #     return self.memory.retrieve_top_k("", num_results)

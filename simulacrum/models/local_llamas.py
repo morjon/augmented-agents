@@ -1,10 +1,8 @@
 from pydantic import Field
 from typing import Any, Optional
 
-from langchain.callbacks.base import BaseCallbackManager
+from langchain.embeddings import LlamaCppEmbeddings
 from langchain.llms import LlamaCpp
-
-from utils.callbacks import ConsoleManager
 
 
 class llama(LlamaCpp):
@@ -13,8 +11,6 @@ class llama(LlamaCpp):
     temperature: Optional[float] = 0.8
     n_ctx: int = Field(2000, alias="n_ctx")  # 2048 is max but output may be truncated
     # n_gpu_layers: Optional[int] = Field(32, alias="n_gpu_layers")
-
-    callback_manager: BaseCallbackManager = ConsoleManager([])
 
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
@@ -34,8 +30,6 @@ class vicuna(LlamaCpp):
     temperature: float = 0.8
     n_ctx: int = Field(512, alias="n_ctx")
 
-    callback_manager: BaseCallbackManager = ConsoleManager([])
-
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
 
@@ -44,5 +38,5 @@ class vicuna(LlamaCpp):
         """Return type of local llm."""
         return "local vicuna"
 
-    def get_model_path(self) -> Optional[str]:
-        return self.model_path
+    def get_embeddings(self):
+        return LlamaCppEmbeddings(model_path=self.model_path)

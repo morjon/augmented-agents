@@ -2,9 +2,11 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 from textwrap import dedent
 
+from langchain.callbacks.manager import BaseCallbackManager
 from langchain import LLMChain
-from langchain.retrievers import TimeWeightedVectorStoreRetriever
 from langchain.schema import Document
+
+from langchain.retrievers import TimeWeightedVectorStoreRetriever
 
 from memory.chains import (
     AgentSummary,
@@ -15,6 +17,8 @@ from memory.chains import (
     MemoryReflect,
 )
 from models.local_llamas import vicuna
+from memory.stream import AgentMemory
+from utils.callbacks import ConsoleManager
 
 import re
 
@@ -26,7 +30,7 @@ class Agent(BaseModel):
     status: str = "idle"
 
     llm: vicuna = Field(init=False)
-    long_term_memory: TimeWeightedVectorStoreRetriever
+    long_term_memory: TimeWeightedVectorStoreRetriever = AgentMemory
     short_term_memory: str = ""
 
     generate_reflections: LLMChain = Field(init=False)
@@ -43,6 +47,8 @@ class Agent(BaseModel):
     verbose: bool = False
     max_token_limit: int = 1200
 
+    callback_manager: BaseCallbackManager = ConsoleManager
+
     class Config:
         arbitrary_types_allowed = True
 
@@ -52,7 +58,8 @@ class Agent(BaseModel):
             verbose=kwargs.get("verbose", True),
             callback_manager=kwargs.get("callback_manager", None),
         )
-        print("Chain dictionary:", chain)
+        print("\n Chain dictionary:\n", chain)
+
         super().__init__(
             *args,
             **kwargs,
@@ -81,7 +88,7 @@ class Agent(BaseModel):
         return result
 
     def fetch_memories(self, observation: str) -> List[str]:
-        return self.long_term_memory.get_relevant_documents(observation)
+        return self.long_term_memory.stream.get_relevant_documents(observation)
 
     def time_to_reflect(self) -> bool:
         return (
@@ -105,7 +112,7 @@ class Agent(BaseModel):
         score = self._predict_importance(fragment)
         print("original chain:", score)
         self.importance_sum += score
-        memory_record = self.long_term_memory.add_documents(
+        memory_record = self.long_term_memory.stream.add_documents(
             [Document(page_content=content, metadata={"Importance": score})]
         )
         print("memory record:", memory_record)
@@ -118,7 +125,7 @@ class Agent(BaseModel):
         return compressed_reflections
 
     def _compress_memories(self, last_k: int = 50) -> List[str]:
-        observations = self.long_term_memory.memory_stream[-last_k:]
+        observations = self.long_term_memory.stream.memory_stream[-last_k:]
         if not any(observations):
             return []
         return self.generate_compression.run(

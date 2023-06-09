@@ -1,50 +1,23 @@
 from collections import defaultdict
-from functools import lru_cache
-from typing import List
-
 from datetime import datetime, timedelta
-
-# from faiss import IndexFlatL2
+from functools import lru_cache
 from pydantic import Field
+from typing import List, Any
+
 from sklearn.metrics.pairwise import cosine_similarity
 
-# from langchain.docstore import InMemoryDocstore
-# from langchain.embeddings import LlamaCppEmbeddings
 from langchain.retrievers import TimeWeightedVectorStoreRetriever
 from langchain.schema import Document
 
-# from langchain.vectorstores import FAISS
-
-from models.llama import llama
+from models.local_llamas import vicuna
 
 
-class MemoryRetriever(TimeWeightedVectorStoreRetriever):
+class AgentRetriever(TimeWeightedVectorStoreRetriever):
     last_refreshed: datetime = Field(default_factory=datetime.now)
-    llm: llama
+    llm: vicuna = Field(init=False)
 
-    def __init__(self, llm: llama):
-        # embeddings = LlamaCppEmbeddings(
-        #     model_path=
-        # "/home/ubuntu/repos/augmented-agents/llama.cpp/models/13B/ggml-model-q4_0.bin"
-        # )
-        # super().__init__(
-        #     vectorstore=FAISS(
-        #         embedding_function=embeddings.embed_query,
-        #         index=IndexFlatL2(1536),
-        #         docstore=InMemoryDocstore({}),
-        #         index_to_docstore_id={},
-        #     )
-        # )
-        self.default_salience = 1.0
-        self.k = 5  # max memory fragments retrieved on call
-
-    def to_dict(self):
-        return {
-            "llm": self.llm,
-            "last_refreshed": self.last_refreshed,
-            "default_salience": self.default_salience,
-            "k": self.k,
-        }
+    def __init__(self, **kwargs: Any):
+        super().__init__(**kwargs)
 
     def _get_recency_score(self, doc_time: datetime) -> float:
         time_diff = (self.last_refreshed - doc_time).total_seconds()
