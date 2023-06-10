@@ -40,10 +40,10 @@ class Agent(BaseModel):
     importance_weight: float = 0.20
 
     importance_sum: float = 0.5
-    reflection_threshold: Optional[float] = None
+    reflection_threshold: Optional[float] = float("inf")
 
     time_without_reflection: int = 0
-    countdown_to_reflection: int = 10
+    countdown_to_reflection: int = 5
 
     verbose: bool = False
     max_token_limit: int = 1200
@@ -165,7 +165,9 @@ class Agent(BaseModel):
         return reflections
 
     def _get_salient_questions(self, last_k: int = 25) -> List[str]:
-        return self.generate_reflections(recent_memories=self.short_term_memory).strip()
+        return self.generate_reflections.run(
+            recent_memories=self.short_term_memory
+        ).strip()
 
     def _compress_memories(self, last_k: Optional[int] = None) -> Tuple[str, str, str]:
         if last_k is None:

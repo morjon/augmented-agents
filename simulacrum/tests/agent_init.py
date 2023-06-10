@@ -37,8 +37,11 @@ bob = Agent(
 
 
 observations = [
-    "Bob sees Katie, who is his rival in Checkers.",
-    "Bob's cat is missing.",
+    "Bob sees Katie, who is his rival in Checkers",
+    "Bob's cat is missing",
+    "Bob just got a new phone",
+    "Bob is excited to go to a party tonight",
+    "Bob got told to stop being a phony",
 ]
 for observation in observations:
     bob.add_memory(observation)

@@ -33,6 +33,11 @@ class vicuna(LlamaCpp):
     n_ctx: int = Field(2000, alias="n_ctx")
     echo: bool = True
 
+    f16_kv: bool = Field(True, alias="f16_kv")
+    n_threads: Optional[int] = Field(16, alias="n_threads")
+    n_batch: Optional[int] = Field(32, alias="n_batch")
+    # n_gpu_layers: Optional[int] = Field(8, alias="n_gpu_layers")
+
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
 
