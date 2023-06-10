@@ -21,7 +21,7 @@ class MemoryParser(LLMChain):
             re.sub(r"^\s*\d+\.\s*", "", line).strip()
             for line in re.split(r"\n", text.strip())
         ]
-        return {"items (after parse)\n": items}
+        return {"items": items}
 
     def run(self, **kwargs) -> Dict[str, List[str]]:
         return self._call(inputs=kwargs)[self.output_key]
@@ -35,7 +35,6 @@ class MemoryJSONParser(LLMChain):
         return {"json": data}
 
 
-# Use BaseChatModel for llm to enable better text parsing.
 class MemoryCompress(MemoryParser):
     @classmethod
     def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
@@ -60,6 +59,30 @@ class MemoryCompress(MemoryParser):
         )
 
 
+class MemoryImportance(MemoryParser):
+    @classmethod
+    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
+        return cls(
+            **kwargs,
+            llm=llm,
+            verbose=verbose,
+            prompt=PromptTemplate.from_template(
+                dedent(
+                    """\
+                    On the scale of 1 to 10, where 1 is purely mundane (e.g., brushing 
+                    teeth, making bed) and 10 is extremely poignant (e.g., a break up, 
+                    college acceptance), rate the poignancy of the following 
+                    piece of memory. 
+
+                    Memory: {memory_fragment}
+
+                    Rating: <fill in> \
+                    """
+                )
+            ),
+        )
+
+
 class MemoryReflect(MemoryParser):
     @classmethod
     def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
@@ -74,30 +97,6 @@ class MemoryReflect(MemoryParser):
 
                     Given only the information above, what are 3 most salient high-level
                     questions we can answer about the subjects in the statements?
-                    """
-                )
-            ),
-        )
-
-
-class MemoryImportance(MemoryParser):
-    @classmethod
-    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
-        return cls(
-            **kwargs,
-            llm=llm,
-            verbose=verbose,
-            prompt=PromptTemplate.from_template(
-                dedent(
-                    """\
-                    On the scale of 1 to 10, where 1 is purely mundane (e.g., brushing 
-                    teeth, making bed) and 10 is extremely poignant (e.g., a break up, 
-                    college acceptance), rate the likely poignancy of the following 
-                    piece of memory. 
-
-                    Memory: {fragment}
-
-                    Rating: <fill in> \
                     """
                 )
             ),

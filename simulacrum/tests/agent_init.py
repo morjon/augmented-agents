@@ -1,18 +1,19 @@
-from langchain.embeddings import LlamaCppEmbeddings
-
 from agent.agent import Agent
+from memory.stream import AgentMemory
 from models.local_llamas import vicuna
+from utils.callbacks import ConsoleManager
 
 
 llm = vicuna()
-embeddings = LlamaCppEmbeddings(
-    model_path="../llama.cpp/models/wizard-vicuna-13B.ggmlv3.q4_0.bin"
-)
+memory = AgentMemory()
+manager = ConsoleManager([])
 
 agent = Agent(
     name="Bob",
     description="A helpful young man who's good at Math proofs.",
     llm=llm,
+    verbose=True,
+    callback_manager=manager,
 )
 
 observations = [

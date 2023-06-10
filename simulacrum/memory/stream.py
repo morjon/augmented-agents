@@ -2,8 +2,8 @@ from faiss import IndexFlatL2
 
 from langchain.docstore import InMemoryDocstore
 from langchain.retrievers import TimeWeightedVectorStoreRetriever
-from langchain.schema import BaseRetriever
 from langchain.vectorstores import FAISS
+
 
 from models.local_llamas import vicuna
 
@@ -12,17 +12,12 @@ embeddings = llm.get_embeddings()
 
 
 class AgentMemory(TimeWeightedVectorStoreRetriever):
-    stream: BaseRetriever
-
-    def __init__(self):
-        self.stream = TimeWeightedVectorStoreRetriever(
-            vectorstore=FAISS(
-                embedding_function=embeddings.embed_query,
-                index=IndexFlatL2(5120),
-                docstore=InMemoryDocstore({}),
-                index_to_docstore_id={},
-            )
-        )
+    vectorstore = FAISS(
+        embedding_function=embeddings.embed_query,
+        index=IndexFlatL2(5120),
+        docstore=InMemoryDocstore({}),
+        index_to_docstore_id={},
+    )
 
     # def add_memory(self, text: str, doc_id: str = None):
     #     document = Document(text=text, doc_id=doc_id)
