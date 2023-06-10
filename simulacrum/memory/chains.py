@@ -1,9 +1,10 @@
-from models.local_llamas import vicuna
+# from models.local_llamas import vicuna
 from typing import Any, Dict, List
 from textwrap import dedent
 
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
+from langchain.chat_models.base import BaseChatModel
 
 import re
 import json
@@ -15,7 +16,6 @@ class MemoryParser(LLMChain):
     def _call(self, inputs: Dict[str, Any]) -> Dict[str, List[str]]:
         print(f"_call inputs: {inputs}\n")
         text = super()._call(inputs)[self.output_key].strip()
-        print(f"text after super()._call\n: {text}")
 
         items = [
             re.sub(r"^\s*\d+\.\s*", "", line).strip()
@@ -37,7 +37,7 @@ class MemoryJSONParser(LLMChain):
 
 class MemoryCompress(MemoryParser):
     @classmethod
-    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
+    def from_llm(cls, llm: BaseChatModel, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
             **kwargs,
             llm=llm,
@@ -45,14 +45,17 @@ class MemoryCompress(MemoryParser):
             prompt=PromptTemplate.from_template(
                 dedent(
                     """\
+                    ### SYSTEM:
                     {context}
 
-                    These are your recent memories: 
+                    ### INSTRUCTIONS:
+                    Given the memories below, accurately compress your memories for
+                    long-term storage (maintaining important content) with one
+                    compression per line.
+
                     {memories}
 
-                    Given the information above, accurately compress your memories for
-                    long-term storage (maintaining important content) with 1
-                    compression per line.
+                    ### RESPONSE:
                     """
                 )
             ),
@@ -61,7 +64,7 @@ class MemoryCompress(MemoryParser):
 
 class MemoryImportance(MemoryParser):
     @classmethod
-    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
+    def from_llm(cls, llm: BaseChatModel, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
             **kwargs,
             llm=llm,
@@ -69,14 +72,17 @@ class MemoryImportance(MemoryParser):
             prompt=PromptTemplate.from_template(
                 dedent(
                     """\
+                    ### SYSTEM:
                     On the scale of 1 to 10, where 1 is purely mundane (e.g., brushing 
                     teeth, making bed) and 10 is extremely poignant (e.g., a break up, 
-                    college acceptance), rate the poignancy of the following 
-                    piece of memory. 
+                    college acceptance), rate the poignancy of the following memory:
 
-                    Memory: {memory_fragment}
+                    {memory_fragment}
 
-                    Rating: <fill in> \
+                    ### INSTRUCTION: 
+                    Return a number 1-10 and a single sentence explanation. 
+
+                    ### RESPONSE:
                     """
                 )
             ),
@@ -85,7 +91,7 @@ class MemoryImportance(MemoryParser):
 
 class MemoryReflect(MemoryParser):
     @classmethod
-    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
+    def from_llm(cls, llm: BaseChatModel, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
             **kwargs,
             llm=llm,
@@ -103,47 +109,9 @@ class MemoryReflect(MemoryParser):
         )
 
 
-class EntityObserved(MemoryParser):
-    @classmethod
-    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
-        return cls(
-            **kwargs,
-            llm=llm,
-            verbose=verbose,
-            prompt=PromptTemplate.from_template(
-                dedent(
-                    """\
-                    What is the observed entity in the following: {observation}
-
-                    Entity: <fill in> \
-                    """
-                )
-            ),
-        )
-
-
-class EntityAction(MemoryParser):
-    @classmethod
-    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
-        return cls(
-            **kwargs,
-            llm=llm,
-            verbose=verbose,
-            prompt=PromptTemplate.from_template(
-                dedent(
-                    """\
-                    What action is the {entity} taking in the following: {observation}
-
-                    The {entity} is: <fill in> \
-                    """
-                )
-            ),
-        )
-
-
 class AgentSummary(MemoryParser):
     @classmethod
-    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
+    def from_llm(cls, llm: BaseChatModel, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
             **kwargs,
             llm=llm,
@@ -162,3 +130,41 @@ class AgentSummary(MemoryParser):
                 )
             ),
         )
+
+
+# class EntityObserved(MemoryParser):
+#     @classmethod
+#     def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
+#         return cls(
+#             **kwargs,
+#             llm=llm,
+#             verbose=verbose,
+#             prompt=PromptTemplate.from_template(
+#                 dedent(
+#                     """\
+#                     What is the observed entity in the following: {observation}
+
+#                     Entity: <fill in> \
+#                     """
+#                 )
+#             ),
+#         )
+
+
+# class EntityAction(MemoryParser):
+#     @classmethod
+#     def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
+#         return cls(
+#             **kwargs,
+#             llm=llm,
+#             verbose=verbose,
+#             prompt=PromptTemplate.from_template(
+#                 dedent(
+#                     """\
+#                     What action is the {entity} taking in the following: {observation}
+
+#                     The {entity} is: <fill in> \
+#                     """
+#                 )
+#             ),
+#         )

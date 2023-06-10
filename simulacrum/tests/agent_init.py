@@ -11,14 +11,15 @@ manager = ConsoleManager([])
 agent = Agent(
     name="Bob",
     description="A helpful young man who's good at Math proofs.",
+    traits=["comedian"],
     llm=llm,
     verbose=True,
     callback_manager=manager,
 )
 
 observations = [
-    "Bob remembers his dog, Bruno, from when he was a kid",
-    "Bob sees the new home his wife bought for them",
+    "Bob sees Katie, who is his rival in Chess.",
+    "Bob's cat is missing.",
 ]
 for observation in observations:
     agent.add_memory(observation)

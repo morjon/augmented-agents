@@ -1,14 +1,15 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from textwrap import dedent
+from datetime import datetime
 
 from langchain import LLMChain
 from langchain.schema import Document
 
 from memory.chains import (
     AgentSummary,
-    EntityAction,
-    EntityObserved,
+    # EntityAction,
+    # EntityObserved,
     MemoryCompress,
     MemoryImportance,
     MemoryReflect,
@@ -29,12 +30,12 @@ class Agent(BaseModel):
     short_term_memory: str = ""
     status: str = "idle"
 
+    generate_agent_summary: LLMChain = Field(init=False)
     generate_reflections: LLMChain = Field(init=False)
     generate_importance: LLMChain = Field(init=False)
     generate_compression: LLMChain = Field(init=False)
-    generate_entity_observed: LLMChain = Field(init=False)
-    generate_entity_action: LLMChain = Field(init=False)
-    generate_agent_summary: LLMChain = Field(init=False)
+    # generate_entity_observed: LLMChain = Field(init=False)
+    # generate_entity_action: LLMChain = Field(init=False)
 
     importance_sum: float = 0.5
     importance_weight: float = 0.20
@@ -57,18 +58,17 @@ class Agent(BaseModel):
         super().__init__(
             *args,
             **kwargs,
+            generate_agent_summary=AgentSummary.from_llm(**chain),
             generate_reflections=MemoryReflect.from_llm(**chain),
             generate_importance=MemoryImportance.from_llm(**chain),
             generate_compression=MemoryCompress.from_llm(**chain),
-            generate_entity_observed=EntityObserved.from_llm(**chain),
-            generate_entity_action=EntityAction.from_llm(**chain),
-            generate_agent_summary=AgentSummary.from_llm(**chain),
+            # generate_entity_observed=EntityObserved.from_llm(**chain),
+            # generate_entity_action=EntityAction.from_llm(**chain),
         )
 
     def get_agent_info(self):
         return dedent(
             f"""\
-
             Name: {self.name}
             Description: {self.description}
             Traits: {", ".join(self.traits)}
@@ -81,24 +81,27 @@ class Agent(BaseModel):
             self.pause_and_reflect()
         return result
 
-    def _add_memory(self, memory_fragment: str) -> List[str]:
-        content = memory_fragment
-        score = self._predict_importance(content)
-        print(f"Memory score: {score}\n")
-        nodes = self.long_term_memory.add_documents(
-            [Document(page_content=content, metadata={"importance": score})]
+    def _add_memory(
+        self, memory_fragment: str, now: Optional[datetime] = None
+    ) -> List[str]:
+        score = self._predict_importance(memory_fragment)
+        print(f"Memory score: {score}")
+        document = Document(
+            page_content=memory_fragment, metadata={"importance": score}
         )
-        print(content if len(content) < 280 else content[:280] + "...")
+        result = self.long_term_memory.add_documents([document], current_time=now)
+        print("\n")
         self.importance_sum += score
-
-        return nodes
+        return result
 
     def _predict_importance(self, memory_fragment: str) -> float:
         score = "".join(
             self.generate_importance.run(memory_fragment=memory_fragment)
         ).strip()
-        print(f"Predict Importance: {score}\n")
+        print("\n")
+        print(f"Predict Importance: {score}")
         match = re.search(r"^\D*(\d+)", score)
+        print(f"Match: {match}\n")
         if not match:
             return 0.0
         return (float(match.group(1)) / 10) * self.importance_weight
@@ -124,6 +127,7 @@ class Agent(BaseModel):
                 )
             )
         )
+        print(f"Computed short term: {self.short_term_memory}")
 
     def _pause_and_reflect(self) -> List[str]:
         compressed_reflections = self._compress_memories()
@@ -133,6 +137,7 @@ class Agent(BaseModel):
 
     def _compress_memories(self, last_k: int = 50) -> List[str]:
         observations = self.long_term_memory[-last_k:]
+        print(f"Observations in Compression: {observations}")
         if not any(observations):
             return []
         return self.generate_compression.run(
@@ -160,11 +165,11 @@ class Agent(BaseModel):
         self.status = prev_status
         return reflections
 
-    def _get_entity_from_observed(self, observation: str = "") -> str:
-        return self.generate_entity_observed.run(observation=observation).strip()
+    # def _get_entity_from_observed(self, observation: str = "") -> str:
+    #     return self.generate_entity_observed.run(observation=observation).strip()
 
-    def _get_entity_action(self, observation: str, entity_name: str) -> str:
-        return self.generate_entity_action.run(
-            observation=observation, entity=entity_name
-        ).strip()
-        return self.short_term_memory
+    # def _get_entity_action(self, observation: str, entity_name: str) -> str:
+    #     return self.generate_entity_action.run(
+    #         observation=observation, entity=entity_name
+    #     ).strip()
+    #     return self.short_term_memory

@@ -24,13 +24,13 @@ class llama(LlamaCpp):
 
 
 class vicuna(LlamaCpp):
-    model_path: Optional[str] = "../llama.cpp/models/wizard-vicuna-13B.ggmlv3.q4_0.bin"
-    # model_path: Optional[  # cutting-edge path (testing only)
-    #     str
-    # ] = "/home/ubuntu/repos/llama.cpp/models/wz-gpu.ggmlv3.q4_1.bin"
+    # model_path: Optional[str] = "../llama.cpp/models/wizard-vicuna-13B.ggmlv3.q4_0.bin"
+    model_path: Optional[  # cutting-edge path (testing only)
+        str
+    ] = "/home/ubuntu/repos/llama.cpp/models/wz-30B-uncensored.ggmlv3.q4_0.bin"
     max_tokens: Optional[int] = 245
     temperature: float = 0.8
-    n_ctx: int = Field(490, alias="n_ctx")
+    n_ctx: int = Field(2000, alias="n_ctx")
     echo: bool = True
 
     def __init__(self, **kwargs: Any):

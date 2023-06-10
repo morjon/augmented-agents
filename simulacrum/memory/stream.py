@@ -14,7 +14,7 @@ embeddings = llm.get_embeddings()
 class AgentMemory(TimeWeightedVectorStoreRetriever):
     vectorstore = FAISS(
         embedding_function=embeddings.embed_query,
-        index=IndexFlatL2(5120),
+        index=IndexFlatL2(6656),  # 5120 13B : 6656 30B
         docstore=InMemoryDocstore({}),
         index_to_docstore_id={},
     )
