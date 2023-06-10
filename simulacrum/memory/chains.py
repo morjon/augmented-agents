@@ -1,10 +1,12 @@
-# from models.local_llamas import vicuna
 from typing import Any, Dict, List
 from textwrap import dedent
 
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
-from langchain.chat_models.base import BaseChatModel
+
+# from langchain.chat_models.base import BaseChatModel
+
+from models.local_llamas import vicuna
 
 import re
 import json
@@ -37,7 +39,7 @@ class MemoryJSONParser(LLMChain):
 
 class MemoryCompress(MemoryParser):
     @classmethod
-    def from_llm(cls, llm: BaseChatModel, verbose: bool = True, **kwargs) -> LLMChain:
+    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
             **kwargs,
             llm=llm,
@@ -64,7 +66,7 @@ class MemoryCompress(MemoryParser):
 
 class MemoryImportance(MemoryParser):
     @classmethod
-    def from_llm(cls, llm: BaseChatModel, verbose: bool = True, **kwargs) -> LLMChain:
+    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
             **kwargs,
             llm=llm,
@@ -73,6 +75,8 @@ class MemoryImportance(MemoryParser):
                 dedent(
                     """\
                     ### SYSTEM:
+                    {context}
+
                     On the scale of 1 to 10, where 1 is purely mundane (e.g., brushing 
                     teeth, making bed) and 10 is extremely poignant (e.g., a break up, 
                     college acceptance), rate the poignancy of the following memory:
@@ -91,7 +95,7 @@ class MemoryImportance(MemoryParser):
 
 class MemoryReflect(MemoryParser):
     @classmethod
-    def from_llm(cls, llm: BaseChatModel, verbose: bool = True, **kwargs) -> LLMChain:
+    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
             **kwargs,
             llm=llm,
@@ -99,10 +103,15 @@ class MemoryReflect(MemoryParser):
             prompt=PromptTemplate.from_template(
                 dedent(
                     """\
-                    {statements}
+                    ### SYSTEM:
+                    {recent_memories}
 
-                    Given only the information above, what are 3 most salient high-level
+                    ### INSTRUCTIONS:
+
+                    Given your recent memories above, what are 3 most salient high-level
                     questions we can answer about the subjects in the statements?
+
+                    ### RESPONSE:
                     """
                 )
             ),
@@ -111,7 +120,7 @@ class MemoryReflect(MemoryParser):
 
 class AgentSummary(MemoryParser):
     @classmethod
-    def from_llm(cls, llm: BaseChatModel, verbose: bool = True, **kwargs) -> LLMChain:
+    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
             **kwargs,
             llm=llm,

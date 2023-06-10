@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from textwrap import dedent
 from datetime import datetime
 
@@ -37,12 +37,17 @@ class Agent(BaseModel):
     # generate_entity_observed: LLMChain = Field(init=False)
     # generate_entity_action: LLMChain = Field(init=False)
 
-    importance_sum: float = 0.5
     importance_weight: float = 0.20
+
+    importance_sum: float = 0.5
     reflection_threshold: Optional[float] = None
+
+    time_without_reflection: int = 0
+    countdown_to_reflection: int = 10
 
     verbose: bool = False
     max_token_limit: int = 1200
+    last_refresh: datetime = Field(default_factory=datetime.now)
 
     class Config:
         arbitrary_types_allowed = True
@@ -90,13 +95,15 @@ class Agent(BaseModel):
             page_content=memory_fragment, metadata={"importance": score}
         )
         result = self.long_term_memory.add_documents([document], current_time=now)
-        print("\n")
         self.importance_sum += score
+        self.time_without_reflection += 1
         return result
 
     def _predict_importance(self, memory_fragment: str) -> float:
         score = "".join(
-            self.generate_importance.run(memory_fragment=memory_fragment)
+            self.generate_importance.run(
+                context=self.get_agent_info(), memory_fragment=memory_fragment
+            )
         ).strip()
         print("\n")
         print(f"Predict Importance: {score}")
@@ -129,29 +136,13 @@ class Agent(BaseModel):
         )
         print(f"Computed short term: {self.short_term_memory}")
 
-    def _pause_and_reflect(self) -> List[str]:
-        compressed_reflections = self._compress_memories()
-        for reflection in compressed_reflections:
-            self.add_memory(reflection)
-        return compressed_reflections
-
-    def _compress_memories(self, last_k: int = 50) -> List[str]:
-        observations = self.long_term_memory[-last_k:]
-        print(f"Observations in Compression: {observations}")
-        if not any(observations):
-            return []
-        return self.generate_compression.run(
-            context=self.get_agent_info(),
-            memories="\n".join(o.page_content for o in observations),
-        )
-
     def fetch_memories(self, observation: str) -> List[str]:
         return self.long_term_memory.get_relevant_documents(observation)
 
     def time_to_reflect(self) -> bool:
         return (
-            self.reflection_threshold is not None
-            and self.importance_sum > self.reflection_threshold
+            self.time_without_reflection >= self.countdown_to_reflection - 1
+            or self.importance_sum > self.reflection_threshold
         )
 
     def pause_and_reflect(self):
@@ -164,6 +155,29 @@ class Agent(BaseModel):
         self.importance_sum = 0.0
         self.status = prev_status
         return reflections
+
+    def _pause_and_reflect(self, now: Optional[datetime] = None) -> List[str]:
+        print(f"{self.name} is reflecting...")
+        reflections = self._get_salient_questions()
+        # compressed_reflections = self._compress_memories()
+        for reflection in reflections:
+            self.add_memory(reflection)
+        return reflections
+
+    def _get_salient_questions(self, last_k: int = 25) -> List[str]:
+        return self.generate_reflections(recent_memories=self.short_term_memory).strip()
+
+    def _compress_memories(self, last_k: Optional[int] = None) -> Tuple[str, str, str]:
+        if last_k is None:
+            last_k = self.countdown_to_reflection
+        observations = self.long_term_memory[-last_k:]
+        print(f"Observations in Compression: {observations}")
+        if not any(observations):
+            return []
+        return self.generate_compression.run(
+            context=self.get_agent_info(),
+            memories="\n".join(o.page_content for o in observations),
+        )
 
     # def _get_entity_from_observed(self, observation: str = "") -> str:
     #     return self.generate_entity_observed.run(observation=observation).strip()
