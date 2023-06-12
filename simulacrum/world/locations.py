@@ -1,3 +1,5 @@
+import random
+
 class Location:
     def __init__(self, name, description):
         self.name = name
@@ -22,3 +24,7 @@ class Locations:
 
     def __str__(self):
         return "\n".join([str(location) for location in self.locations.values()])
+
+    def get_random_location(self):
+        return random.choice(list(self.locations.values()))
+        

@@ -1,10 +1,11 @@
 from agent.agent import Agent
 from memory.stream import AgentMemory
+from langchain.llms import OpenAI
 from models.local_llamas import vicuna
 from utils.callbacks import ConsoleManager
 
 
-llm = vicuna()
+llm = OpenAI(model_name="text-davinci-003")  #vicuna()
 memory = AgentMemory()
 manager = ConsoleManager([])
 
@@ -38,10 +39,10 @@ bob = Agent(
 
 observations = [
     "Bob sees Katie, who is his rival in Checkers",
-    "Bob's cat is missing",
-    "Bob just got a new phone",
-    "Bob is excited to go to a party tonight",
-    "Bob got told to stop being a phony",
+    # "Bob's cat is missing",
+    # "Bob just got a new phone",
+    # "Bob is excited to go to a party tonight",
+    # "Bob got told to stop being a phony",
 ]
 for observation in observations:
     bob.add_memory(observation)

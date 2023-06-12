@@ -17,9 +17,8 @@ from memory.chains import (
 from models.local_llamas import vicuna
 from memory.stream import AgentMemory
 
-# from world.locations import Location
-
 import re
+import networkx as nx
 
 
 class Agent(BaseModel):
@@ -30,6 +29,8 @@ class Agent(BaseModel):
     # world sim
     plans: str = ""
     location: List[str] = Field(default_factor=list)
+    world: nx.Graph = Field(default_factory=nx.Graph)
+    starting_location: str = ""
 
     llm: vicuna = Field(init=False)
     long_term_memory = AgentMemory()
