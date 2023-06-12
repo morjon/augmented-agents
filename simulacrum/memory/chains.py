@@ -7,6 +7,7 @@ from langchain.prompts import PromptTemplate
 # from langchain.chat_models.base import BaseChatModel
 
 from models.local_llamas import vicuna
+from models.local_llamas import openai
 
 import re
 import json
@@ -66,7 +67,7 @@ class MemoryCompress(MemoryParser):
 
 class MemoryImportance(MemoryParser):
     @classmethod
-    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
+    def from_llm(cls, llm: openai, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
             **kwargs,
             llm=llm,
@@ -135,6 +136,32 @@ class AgentSummary(MemoryParser):
                     Be concise and avoid embellishment.
 
                     Summary: <fill in> \
+                    """
+                )
+            ),
+        )
+
+
+class AgentPlan(MemoryParser):
+    @classmethod
+    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
+        return cls(
+            **kwargs,
+            llm=llm,
+            verbose=verbose,
+            prompt=PromptTemplate.from_template(
+                dedent(
+                    """\
+                    ### SYSTEM: 
+                    You are {name}. The following is a description of your core 
+                    personality traits and characteristics: {description}
+
+                    ### INSTRUCTIONS:
+                    What are your plans for the day? Write it down in an hourly basis, 
+                    starting at {now}:00. Write only one or two very short sentences. 
+                    Be very brief. Use at most 50 words.
+
+
                     """
                 )
             ),

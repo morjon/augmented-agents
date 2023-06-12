@@ -1,32 +1,40 @@
 {
-        "config": {
-                "global_time_limit": 12,
-                "max_attempts": 1,
-                "memory_limit": 5,
-                "prompt_meta": "### Instruction:\n{}\n### Response:"
+    "config": {
+        "global_time_limit": 12,
+        "max_attempts": 1,
+        "memory_limit": 5,
+        "prompt_meta": "### Instruction:\n{}\n### Response:"
+    },
+    "location_data": {
+        "Main Street": "The main street of a small town.",
+        "Grocery Store": "A small grocery store that sells basic necessities.",
+        "Library": "A cozy library with a fireplace and plenty of books.",
+        "Park": "A small park with a fountain and benches."
+    },
+    "agent_data": {
+        "John": {
+            "description": "The owner of the grocery store.",
+            "starting_location": "Grocery Store",
+            "traits": [
+                "comedian",
+                "sarcastic"
+            ]
         },
-        "location_data": {
-                "Main Street": "The main street of a small town.",
-                "Grocery Store": "A small grocery store that sells basic necessities.",
-                "Library": "A cozy library with a fireplace and plenty of books.",
-                "Park": "A small park with a fountain and benches."
+        "Emily": {
+            "description": "A librarian who loves recommending books to visitors.",
+            "starting_location": "Library",
+            "traits": [
+                "friendly",
+                "helpful"
+            ]
         },
-        "agent_data": {
-                "John": {
-                        "description": "The owner of the grocery store.",
-                        "starting_location": "Grocery Store",
-                        "traits": [
-                                "comedian",
-                                "sarcastic"
-                        ]
-                },
-                "Emily": {
-                        "description": "A librarian who loves recommending books to visitors.",
-                        "starting_location": "Library"
-                },
-                "David": {
-                        "description": "A retired park ranger who spends his days reading in the park.",
-                        "starting_location": "Park"
-                }
+        "David": {
+            "description": "A retired park ranger who spends his days reading in the park.",
+            "starting_location": "Park",
+            "traits": [
+                "wise",
+                "patient"
+            ]
         }
+    }
 }

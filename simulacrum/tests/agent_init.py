@@ -1,13 +1,17 @@
 from agent.agent import Agent
 from memory.stream import AgentMemory
 from langchain.llms import OpenAI
-from models.local_llamas import vicuna
+
+# from models.local_llamas import vicuna
+from models.local_llamas import openai
 from utils.callbacks import ConsoleManager
 
 
-llm = OpenAI(model_name="text-davinci-003")  #vicuna()
+# llm = OpenAI(model_name="text-davinci-003")  #vicuna()
+llm = openai()
 memory = AgentMemory()
 manager = ConsoleManager([])
+print(llm)
 
 bob = Agent(
     name="Bob",

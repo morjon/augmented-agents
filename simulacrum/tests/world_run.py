@@ -11,7 +11,7 @@ repeat_sim = 5
 
 output_sim = ""
 
-with open("small_sandbox.json", "r") as f:
+with open("/home/ubuntu/repos/augmented-agents/simulacrum/world/small_sandbox.json", "r") as f:
     world_data = json.load(f)
 
 agent_data = world_data["agent_data"]
@@ -45,11 +45,19 @@ for name, description in agent_data.items() :
                         description=description, 
                         llm=llm, 
                         verbose=True, 
-                        callback_manager=callback_manager
+                        callback_manager=callback_manager,
                         world=world,
-                        starting_location=starting_location
+                        starting_location=starting_location,
                 )
         ) 
 
 # Run the simulation.
 for i in range(repeat_sim):
+        log_output = ""
+        print(f"==================== Simulation {i} ====================\n")
+        log_output += f"==================== Simulation {i} ====================\n"
+
+        for agent in agents:
+            agent.plan(step_sim)
+            agent.get_context()
+

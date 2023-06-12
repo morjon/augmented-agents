@@ -3,6 +3,14 @@ from typing import Any, Optional
 
 from langchain.embeddings import LlamaCppEmbeddings
 from langchain.llms import LlamaCpp
+from langchain.llms import OpenAI
+
+
+class openai(OpenAI):
+    model_name: Optional[str] = "text-davinci-003"
+
+    def __init__(self, **kwargs: Any):
+        super().__init__(**kwargs)
 
 
 class llama(LlamaCpp):

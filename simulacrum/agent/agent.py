@@ -8,13 +8,17 @@ from langchain.schema import Document
 
 from memory.chains import (
     AgentSummary,
+    AgentPlan,
     # EntityAction,
     # EntityObserved,
     MemoryCompress,
     MemoryImportance,
     MemoryReflect,
 )
+
 from models.local_llamas import vicuna
+
+# from models.local_llamas import openai
 from memory.stream import AgentMemory
 
 import re
@@ -27,17 +31,19 @@ class Agent(BaseModel):
     traits: List[str] = Field(default_factory=list)
 
     # world sim
-    plans: str = ""
+    plan: str = ""
     location: List[str] = Field(default_factor=list)
     world: nx.Graph = Field(default_factory=nx.Graph)
     starting_location: str = ""
 
     llm: vicuna = Field(init=False)
+    # llm: openai = Field(init=False)
     long_term_memory = AgentMemory()
     short_term_memory: str = ""
     status: str = "idle"
 
     generate_agent_summary: LLMChain = Field(init=False)
+    generate_agent_plan: LLMChain = Field(init=False)
     generate_reflections: LLMChain = Field(init=False)
     generate_importance: LLMChain = Field(init=False)
     generate_compression: LLMChain = Field(init=False)
@@ -71,6 +77,7 @@ class Agent(BaseModel):
             *args,
             **kwargs,
             generate_agent_summary=AgentSummary.from_llm(**chain),
+            generate_agent_plan=AgentPlan.from_llm(**chain),
             generate_reflections=MemoryReflect.from_llm(**chain),
             generate_importance=MemoryImportance.from_llm(**chain),
             generate_compression=MemoryCompress.from_llm(**chain),
@@ -112,10 +119,8 @@ class Agent(BaseModel):
                 context=self.get_agent_info(), memory_fragment=memory_fragment
             )
         ).strip()
-        print("\n")
-        print(f"Predict Importance: {score}")
+        print(score)
         match = re.search(r"^\D*(\d+)", score)
-        print(f"Match: {match}\n")
         if not match:
             return 0.0
         return (float(match.group(1)) / 10) * self.importance_weight
@@ -124,6 +129,8 @@ class Agent(BaseModel):
         context = self.short_term_memory
         if not context or force_refresh or self.time_to_reflect():
             context = self._compute_agent_memory()
+
+        print(f"{self.get_agent_info()}Summary:\n{context}\n")
 
         return f"{self.get_agent_info()}Summary:\n{context}\n"
 
@@ -170,7 +177,7 @@ class Agent(BaseModel):
             self.add_memory(reflection)
         return reflections
 
-    def _get_salient_questions(self, last_k: int = 25) -> List[str]:
+    def _get_salient_questions(self, last_k: int = 10) -> List[str]:
         context = self.get_context()
         print(context)
         return "".join(self.generate_reflections.run(recent_memories=context)).strip()
@@ -179,13 +186,17 @@ class Agent(BaseModel):
         if last_k is None:
             last_k = self.countdown_to_reflection
         observations = self.long_term_memory[-last_k:]
-        print(f"Observations in Compression: {observations}")
         if not any(observations):
             return []
         return self.generate_compression.run(
             context=self.get_agent_info(),
             memories="\n".join(o.page_content for o in observations),
         )
+
+    def plan(self, now: Optional[str] = None) -> str:
+        plans = self.generate_agent_plan.run(name=self.name, description=self.description, now=now)
+        print(plans)
+        return "".join(plans).strip()
 
     # def _get_entity_from_observed(self, observation: str = "") -> str:
     #     return self.generate_entity_observed.run(observation=observation).strip()
