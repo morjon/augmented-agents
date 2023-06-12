@@ -34,8 +34,8 @@ class vicuna(LlamaCpp):
     echo: bool = True
 
     f16_kv: bool = Field(True, alias="f16_kv")
-    n_threads: Optional[int] = Field(16, alias="n_threads")
-    n_batch: Optional[int] = Field(32, alias="n_batch")
+    # n_threads: Optional[int] = Field(16, alias="n_threads")
+    # n_batch: Optional[int] = Field(32, alias="n_batch")
     # n_gpu_layers: Optional[int] = Field(8, alias="n_gpu_layers")
 
     def __init__(self, **kwargs: Any):

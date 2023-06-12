@@ -17,6 +17,8 @@ from memory.chains import (
 from models.local_llamas import vicuna
 from memory.stream import AgentMemory
 
+# from world.locations import Location
+
 import re
 
 
@@ -24,6 +26,10 @@ class Agent(BaseModel):
     name: str
     description: str
     traits: List[str] = Field(default_factory=list)
+
+    # world sim
+    plans: str = ""
+    location: List[str] = Field(default_factor=list)
 
     llm: vicuna = Field(init=False)
     long_term_memory = AgentMemory()
@@ -159,15 +165,14 @@ class Agent(BaseModel):
     def _pause_and_reflect(self, now: Optional[datetime] = None) -> List[str]:
         print(f"{self.name} is reflecting...")
         reflections = self._get_salient_questions()
-        # compressed_reflections = self._compress_memories()
         for reflection in reflections:
             self.add_memory(reflection)
         return reflections
 
     def _get_salient_questions(self, last_k: int = 25) -> List[str]:
-        return self.generate_reflections.run(
-            recent_memories=self.short_term_memory
-        ).strip()
+        context = self.get_context()
+        print(context)
+        return "".join(self.generate_reflections.run(recent_memories=context)).strip()
 
     def _compress_memories(self, last_k: Optional[int] = None) -> Tuple[str, str, str]:
         if last_k is None:

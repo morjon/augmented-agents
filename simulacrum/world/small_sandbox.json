@@ -1,0 +1,28 @@
+{
+    "general": {
+        "global_time_limit": 12,
+        "max_attempts": 1,
+        "memory_limit": 5,
+        "prompt_meta": "### Instruction:\n{}\n### Response:"
+    },
+    "town_areas": {
+        "Main Street": "The main street of a small town.",
+        "Grocery Store": "A small grocery store that sells basic necessities.",
+        "Library": "A cozy library with a fireplace and plenty of books.",
+        "Park": "A small park with a fountain and benches."
+    },
+    "town_people": {
+        "John": {
+            "description": "The owner of the grocery store.",
+            "starting_location": "Grocery Store"
+        },
+        "Emily": {
+            "description": "A librarian who loves recommending books to visitors.",
+            "starting_location": "Library"
+        },
+        "David": {
+            "description": "A retired park ranger who spends his days reading in the park.",
+            "starting_location": "Park"
+        }
+    }
+}
