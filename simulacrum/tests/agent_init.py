@@ -1,6 +1,5 @@
 from agent.agent import Agent
 from memory.stream import AgentMemory
-from langchain.llms import OpenAI
 
 # from models.local_llamas import vicuna
 from models.local_llamas import openai

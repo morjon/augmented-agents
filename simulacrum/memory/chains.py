@@ -3,14 +3,22 @@ from textwrap import dedent
 
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
-
-# from langchain.chat_models.base import BaseChatModel
+from langchain.chat_models.base import BaseChatModel
 
 from models.local_llamas import vicuna
-from models.local_llamas import openai
+
+# from models.local_llamas import openai
 
 import re
 import json
+
+
+class MemoryJSONParser(LLMChain):
+    key = "json"
+
+    def _call(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        data = json.loads(super()._call(inputs)["json"].strip())
+        return {"json": data}
 
 
 class MemoryParser(LLMChain):
@@ -28,14 +36,6 @@ class MemoryParser(LLMChain):
 
     def run(self, **kwargs) -> Dict[str, List[str]]:
         return self._call(inputs=kwargs)[self.output_key]
-
-
-class MemoryJSONParser(LLMChain):
-    key = "json"
-
-    def _call(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
-        data = json.loads(super()._call(inputs)["json"].strip())
-        return {"json": data}
 
 
 class MemoryCompress(MemoryParser):
@@ -67,7 +67,7 @@ class MemoryCompress(MemoryParser):
 
 class MemoryImportance(MemoryParser):
     @classmethod
-    def from_llm(cls, llm: openai, verbose: bool = True, **kwargs) -> LLMChain:
+    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
             **kwargs,
             llm=llm,
@@ -144,7 +144,7 @@ class AgentSummary(MemoryParser):
 
 class AgentPlan(MemoryParser):
     @classmethod
-    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
+    def from_llm(cls, llm: BaseChatModel, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
             **kwargs,
             llm=llm,
@@ -154,14 +154,18 @@ class AgentPlan(MemoryParser):
                     """\
                     ### SYSTEM: 
                     You are {name}. The following is a description of your core 
-                    personality traits and characteristics: {description}
+                    personality traits and characteristics: 
+
+                    {description}
+
+                    {traits}
 
                     ### INSTRUCTIONS:
                     What are your plans for the day? Write it down in an hourly basis, 
-                    starting at {now}:00. Write only one or two very short sentences. 
-                    Be very brief. Use at most 50 words.
+                    starting in the morning. Write only one very short sentences. Be 
+                    very brief. Use at most 50 words.
 
-
+                    ### RESPONSE:
                     """
                 )
             ),

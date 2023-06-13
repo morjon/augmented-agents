@@ -14,26 +14,23 @@
     "agent_data": {
         "John": {
             "description": "The owner of the grocery store.",
-            "starting_location": "Grocery Store",
-            "traits": [
-                "comedian",
-                "sarcastic"
-            ]
-        },
-        "Emily": {
-            "description": "A librarian who loves recommending books to visitors.",
-            "starting_location": "Library",
             "traits": [
                 "friendly",
                 "helpful"
             ]
         },
+        "Emily": {
+            "description": "A librarian who loves recommending books to visitors.",
+            "traits": [
+                "rowdy",
+                "unapologetic"
+            ]
+        },
         "David": {
             "description": "A retired park ranger who spends his days reading in the park.",
-            "starting_location": "Park",
             "traits": [
-                "wise",
-                "patient"
+                "quiet",
+                "reserved"
             ]
         }
     }

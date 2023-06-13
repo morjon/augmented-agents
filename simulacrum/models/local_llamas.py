@@ -36,9 +36,9 @@ class vicuna(LlamaCpp):
     model_path: Optional[  # cutting-edge path (testing only)
         str
     ] = "/home/ubuntu/repos/llama.cpp/models/wz-30B-uncensored.ggmlv3.q4_0.bin"
-    max_tokens: Optional[int] = 245
+    max_tokens: Optional[int] = 256
     temperature: float = 0.8
-    n_ctx: int = Field(2000, alias="n_ctx")
+    n_ctx: int = Field(512, alias="n_ctx")
     echo: bool = True
 
     f16_kv: bool = Field(True, alias="f16_kv")

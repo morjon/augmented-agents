@@ -4,7 +4,7 @@ from textwrap import dedent
 from datetime import datetime
 
 from langchain import LLMChain
-from langchain.schema import Document
+from langchain.schema import Document, BaseRetriever
 
 from memory.chains import (
     AgentSummary,
@@ -15,11 +15,9 @@ from memory.chains import (
     MemoryImportance,
     MemoryReflect,
 )
-
 from models.local_llamas import vicuna
 
-# from models.local_llamas import openai
-from memory.stream import AgentMemory
+# from memory.stream import AgentMemory
 
 import re
 import networkx as nx
@@ -32,13 +30,11 @@ class Agent(BaseModel):
 
     # world sim
     plan: str = ""
-    location: List[str] = Field(default_factor=list)
     world: nx.Graph = Field(default_factory=nx.Graph)
-    starting_location: str = ""
+    location: str
 
     llm: vicuna = Field(init=False)
-    # llm: openai = Field(init=False)
-    long_term_memory = AgentMemory()
+    long_term_memory: BaseRetriever = Field(init=False)
     short_term_memory: str = ""
     status: str = "idle"
 
@@ -71,7 +67,7 @@ class Agent(BaseModel):
             verbose=kwargs.get("verbose", True),
             callback_manager=kwargs.get("callback_manager", None),
         )
-        print(f"Chain dict: {chain}")
+        print(f"Chain dict: {chain}\n")
 
         super().__init__(
             *args,
@@ -173,6 +169,7 @@ class Agent(BaseModel):
     def _pause_and_reflect(self, now: Optional[datetime] = None) -> List[str]:
         print(f"{self.name} is reflecting...")
         reflections = self._get_salient_questions()
+        print(f"{self.name} is done reflecting!")
         for reflection in reflections:
             self.add_memory(reflection)
         return reflections
@@ -193,10 +190,14 @@ class Agent(BaseModel):
             memories="\n".join(o.page_content for o in observations),
         )
 
-    def plan(self, now: Optional[str] = None) -> str:
-        plans = self.generate_agent_plan.run(name=self.name, description=self.description, now=now)
-        print(plans)
-        return "".join(plans).strip()
+    def get_plan(self, now: Optional[str] = None) -> str:
+        print(f"{self.name} is planning his day...")
+        plan = self.generate_agent_plan.run(
+            name=self.name, description=self.description, traits=self.traits
+        )
+        print(f"{self.name} is done planning!")
+        self.plan = plan
+        return plan
 
     # def _get_entity_from_observed(self, observation: str = "") -> str:
     #     return self.generate_entity_observed.run(observation=observation).strip()
