@@ -5,7 +5,9 @@ from datetime import datetime
 
 from langchain import LLMChain
 from langchain.schema import Document, BaseRetriever
+from langchain.chat_models.base import BaseChatModel
 
+# from agent.actors import AgentActor
 from memory.chains import (
     AgentSummary,
     AgentPlan,
@@ -17,10 +19,9 @@ from memory.chains import (
 )
 from models.local_llamas import vicuna
 
-# from memory.stream import AgentMemory
-
-import re
 import networkx as nx
+import ray
+import re
 
 
 class Agent(BaseModel):
@@ -28,7 +29,6 @@ class Agent(BaseModel):
     description: str
     traits: List[str] = Field(default_factory=list)
 
-    # world sim
     plan: str = ""
     world: nx.Graph = Field(default_factory=nx.Graph)
     location: str
@@ -57,6 +57,7 @@ class Agent(BaseModel):
     verbose: bool = False
     max_token_limit: int = 1200
     last_refresh: datetime = Field(default_factory=datetime.now)
+    # actor: ray.ObjectRef = None
 
     class Config:
         arbitrary_types_allowed = True
@@ -80,6 +81,7 @@ class Agent(BaseModel):
             # generate_entity_observed=EntityObserved.from_llm(**chain),
             # generate_entity_action=EntityAction.from_llm(**chain),
         )
+        # self.actor = AgentActor.remote(self)
 
     def get_agent_info(self):
         return dedent(
@@ -195,7 +197,7 @@ class Agent(BaseModel):
         plan = self.generate_agent_plan.run(
             name=self.name, description=self.description, traits=self.traits
         )
-        print(f"{self.name} is done planning!")
+        print(f"{self.name} is done planning!\n")
         self.plan = plan
         return plan
 

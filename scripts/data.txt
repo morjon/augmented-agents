@@ -1,0 +1,29 @@
+Model 1
+llama_print_timings:        load time = 57122.17 ms
+llama_print_timings:      sample time =   553.70 ms /   721 runs   (    0.77 ms per token)
+llama_print_timings: prompt eval time =  1007.30 ms /    60 tokens (   16.79 ms per token)
+llama_print_timings:        eval time = 159591.91 ms /   720 runs   (  221.66 ms per token)
+llama_print_timings:       total time = 217463.76 ms
+
+Model 2
+llama_print_timings:        load time =  2401.33 ms
+llama_print_timings:      sample time =    22.08 ms /    29 runs   (    0.76 ms per token)
+llama_print_timings: prompt eval time =  1006.70 ms /    60 tokens (   16.78 ms per token)
+llama_print_timings:        eval time =  5847.98 ms /    28 runs   (  208.86 ms per token)
+llama_print_timings:       total time =  8279.39 ms
+
+Model 3
+llama_print_timings:        load time = 107197.79 ms
+llama_print_timings:      sample time =    22.61 ms /    29 runs   (    0.78 ms per token)
+llama_print_timings: prompt eval time =  1509.98 ms /    60 tokens (   25.17 ms per token)
+llama_print_timings:        eval time = 10535.99 ms /    28 runs   (  376.29 ms per token)
+llama_print_timings:       total time = 117764.47 ms
+
+Model 4
+llama_print_timings:        load time = 63384.58 ms
+llama_print_timings:      sample time =    28.76 ms /    37 runs   (    0.78 ms per token)
+llama_print_timings: prompt eval time =  1071.11 ms /    60 tokens (   17.85 ms per token)
+llama_print_timings:        eval time =  8358.34 ms /    36 runs   (  232.18 ms per token)
+llama_print_timings:       total time = 71781.89 ms
+
+

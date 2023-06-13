@@ -5,7 +5,7 @@ from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.chat_models.base import BaseChatModel
 
-from models.local_llamas import vicuna
+# from models.local_llamas import vicuna
 
 # from models.local_llamas import openai
 
@@ -40,7 +40,7 @@ class MemoryParser(LLMChain):
 
 class MemoryCompress(MemoryParser):
     @classmethod
-    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
+    def from_llm(cls, llm: BaseChatModel, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
             **kwargs,
             llm=llm,
@@ -67,7 +67,7 @@ class MemoryCompress(MemoryParser):
 
 class MemoryImportance(MemoryParser):
     @classmethod
-    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
+    def from_llm(cls, llm: BaseChatModel, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
             **kwargs,
             llm=llm,
@@ -96,7 +96,7 @@ class MemoryImportance(MemoryParser):
 
 class MemoryReflect(MemoryParser):
     @classmethod
-    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
+    def from_llm(cls, llm: BaseChatModel, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
             **kwargs,
             llm=llm,
@@ -121,7 +121,7 @@ class MemoryReflect(MemoryParser):
 
 class AgentSummary(MemoryParser):
     @classmethod
-    def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
+    def from_llm(cls, llm: BaseChatModel, verbose: bool = True, **kwargs) -> LLMChain:
         return cls(
             **kwargs,
             llm=llm,
@@ -152,17 +152,17 @@ class AgentPlan(MemoryParser):
             prompt=PromptTemplate.from_template(
                 dedent(
                     """\
-                    ### SYSTEM: 
-                    You are {name}. The following is a description of your core 
-                    personality traits and characteristics: 
+                    ### SYSTEM:
+                    You are {name}. The following is a description of your core
+                    personality traits and characteristics:
 
                     {description}
 
                     {traits}
 
                     ### INSTRUCTIONS:
-                    What are your plans for the day? Write it down in an hourly basis, 
-                    starting in the morning. Write only one very short sentences. Be 
+                    What are your plans for the day? Write it down in an hourly basis,
+                    starting in the morning. Write only one very short sentences. Be
                     very brief. Use at most 50 words.
 
                     ### RESPONSE:
@@ -174,7 +174,7 @@ class AgentPlan(MemoryParser):
 
 # class EntityObserved(MemoryParser):
 #     @classmethod
-#     def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
+#     def from_llm(cls, llm: BaseChatModel, verbose: bool = True, **kwargs) -> LLMChain:
 #         return cls(
 #             **kwargs,
 #             llm=llm,
@@ -193,7 +193,7 @@ class AgentPlan(MemoryParser):
 
 # class EntityAction(MemoryParser):
 #     @classmethod
-#     def from_llm(cls, llm: vicuna, verbose: bool = True, **kwargs) -> LLMChain:
+#     def from_llm(cls, llm: BaseChatModel, verbose: bool = True, **kwargs) -> LLMChain:
 #         return cls(
 #             **kwargs,
 #             llm=llm,

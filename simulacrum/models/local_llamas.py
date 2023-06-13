@@ -35,7 +35,7 @@ class vicuna(LlamaCpp):
     # model_path: Optional[str] = "../llama.cpp/models/wizard-vicuna-13B.ggmlv3.q4_0.bin"
     model_path: Optional[  # cutting-edge path (testing only)
         str
-    ] = "/home/ubuntu/repos/llama.cpp/models/wz-30B-uncensored.ggmlv3.q4_0.bin"
+    ] = "/home/ubuntu/repos/llama.cpp/models/wz-gpu.ggmlv3.q4_0.bin"
     max_tokens: Optional[int] = 256
     temperature: float = 0.8
     n_ctx: int = Field(512, alias="n_ctx")

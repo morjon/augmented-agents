@@ -15,6 +15,7 @@ from utils.callbacks import ConsoleManager
 
 import json
 import networkx as nx
+import ray
 
 
 class Simulation:
@@ -37,6 +38,11 @@ class Simulation:
             )
         )
         cls.callback_manager = ConsoleManager([])
+        ray.init()
+
+    @classmethod
+    def teardown(cls):
+        ray.shutdown()
 
     def create_world(self, world_file_path: str):
         world = nx.Graph()
